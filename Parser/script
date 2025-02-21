@@ -1,0 +1,5 @@
+#!/bin/bash
+
+flex lexico.l 
+bison -d sintaxis.y
+gcc -o parser lex.yy.c sintaxis.tab.c ../src/*.c
