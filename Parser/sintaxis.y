@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../include/Node.h"
-#include "../include/ListVar.h"
+#include "../include/ListNode.h"
 #include "../include/Graph.h"
 #include "../include/Adm.h"
 
