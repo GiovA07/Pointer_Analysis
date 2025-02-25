@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "./Node.h"
-#include "./ListVar.h"
+#include "./ListNode.h"
 
 #ifndef GRAPH_H
 #define GRAPH_H

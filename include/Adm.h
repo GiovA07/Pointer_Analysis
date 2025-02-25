@@ -4,7 +4,7 @@
 
 #include "./Graph.h"
 #include "./Node.h"
-#include "./ListVar.h"
+#include "./ListNode.h"
 
 #ifndef ADM_H
 #define ADM_H
