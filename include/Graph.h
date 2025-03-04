@@ -12,9 +12,8 @@
 
 // Grafo
 typedef struct Graph{
-    Node* V;                // Nodos actual del grafo
-    ListVar* E;        // Lista de nodos adyacentes que tienen aristas con el
-    struct Graph* next;
+    Node* node;                // Nodo actual del grafo
+    struct Graph* next;        // Siguiente nodo
 } Graph;
 
 // Funciones para manejar el grafo

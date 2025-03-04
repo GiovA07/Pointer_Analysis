@@ -9,14 +9,16 @@
 
 // Estructura de un nodo del grafo
 typedef struct Node {
-    char* name;        // Nombre del nodo (variable)
+    char* name;                            // Nombre del nodo (variable)
     struct Node* references[MAX_NODES];    // Lista de variables a las que apunta
+    struct Node* edges[MAX_NODES];         // Lista de nodos con los que tiene aristas
 } Node;
 
 // Funciones para manejar los nodos
 Node* createNode(char *name);
 void addReference(Node *node, Node *ref);
+void addEdgeInNode(Node *node, Node *edge);
 void printReferences(Node *node);
-
-#endif // NODE_H
+void printEdges(Node *node);
+#endif
 

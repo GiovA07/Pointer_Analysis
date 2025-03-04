@@ -7,7 +7,7 @@
 // Busca un nodo en el grafo y devuelve su puntero, o NULL si no existe.
 Graph* findNode(Graph *g, char *name) {
     while (g != NULL) {
-        if (strcmp(g->V->name, name) == 0) {
+        if (strcmp(g->node->name, name) == 0) {
             return g;
         }
         g = g->next;
@@ -25,8 +25,7 @@ void addNode(Graph **g, Node *node) {
         printf("Error al asignar memoria para el nodo.\n");
         return;
     }
-    nuevo->V = node;
-    nuevo->E = NULL;
+    nuevo->node = node;
     nuevo->next = *g;
     *g = nuevo;
 }
@@ -37,26 +36,17 @@ void addEdge(Graph *from, Node* to) {
         printf("Error: Nodo de origen o destino no válido.\n");
         return;
     }
-
-    // Crear nueva conexión en la lista de adyacencia
-    ListVar *newList = (ListVar *)malloc(sizeof(ListVar));
-    if (!newList) {
-        printf("Error al asignar memoria para la arista.\n");
-        return;
-    }
-    newList->var = to;
-    newList->next = from->E;
-    from->E = newList;
+    addEdgeInNode(from->node, to);
 }
 
 // Imprime el grafo en formato de lista de adyacencia
 void printGraph(Graph *g) {
     while (g != NULL) {
-        printf("Nodo %s: \n", g->V->name);
-        ListVar *temp = g->E;
-        while (temp != NULL) {
-            printf("Nodo %s -> %s \n", g->V->name, temp->var->name);
-            temp = temp->next;
+        printf("Nodo %s: \n", g->node->name);
+        for (int i = 0; i < MAX_NODES; i++) {
+            if (g->node->edges[i] != NULL) {
+                printf(" -> %s\n", g->node->edges[i]->name);
+            }
         }
         g = g->next;
     }
@@ -65,15 +55,14 @@ void printGraph(Graph *g) {
 void generateDot(Graph *g, FILE* file) {
     Graph *gOriginal = g;
     while (g) {
-        Node* node = g->V;
-        struct Node** listRef = g->V->references;
+        Node* node = g->node;
         char refList[256] = "";
 
-        struct Node** current = listRef;
+        // Concatenar las referencias
         int i = 0;
-        while (current[i] != NULL) {
-            strcat(refList, current[i]->name);
-            if (current[i+1] != NULL) {
+        while (node->references[i] != NULL && i < MAX_NODES) {
+            strcat(refList, node->references[i]->name);
+            if (node->references[i+1] != NULL) {
                 strcat(refList, ", ");
             }
             i++;
@@ -88,13 +77,11 @@ void generateDot(Graph *g, FILE* file) {
     // Ahora, agregar las aristas
     g = gOriginal; 
     while (g) {
-        Node* node = g->V;
-        ListVar* listRef = g->E;
-
-        ListVar* current = listRef;
-        while (current) {
-            fprintf(file, "%s -> %s;\n", node->name, current->var->name);
-            current = current->next;
+        Node* node = g->node;
+        for (int i = 0; i < MAX_NODES; i++) {
+            if (node->edges[i] != NULL) {
+                fprintf(file, "%s -> %s;\n", node->name, node->edges[i]->name);
+            }
         }
         g = g->next;
     }

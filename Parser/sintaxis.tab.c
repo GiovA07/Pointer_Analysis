@@ -1100,8 +1100,8 @@ yyreduce:
                                 Graph* aux = findNode(graph, n1->name);
                                 Graph* aux2 = findNode(graph, n2->name);
                                 
-                                n1 = aux->V;
-                                n2 = aux2->V;
+                                n1 = aux->node;
+                                n2 = aux2->node;
                                 constraintBase(n1, n2);
 
                                 (yyval.graph) = graph;
@@ -1125,7 +1125,7 @@ yyreduce:
                                 Graph* aux = findNode(graph, n1->name);
                                 Graph* aux2 = findNode(graph, n2->name);
 
-                                n1 = aux->V;
+                                n1 = aux->node;
                                 constraintSimple(aux2, n1);
 
                                 (yyval.graph) = graph;
