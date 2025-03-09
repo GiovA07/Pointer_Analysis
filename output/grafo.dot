@@ -11,8 +11,8 @@ E [label="E {G}"];
 C [label="C {}"];
 H [label="H {C, G}"];
 D -> F;
-A -> B;
 A -> H;
+A -> B;
 B -> C;
 C -> B;
 }

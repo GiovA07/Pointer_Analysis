@@ -66,7 +66,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 19 "sintaxis.y"
+#line 20 "sintaxis.y"
 
     char* string;
     struct Graph* graph;
