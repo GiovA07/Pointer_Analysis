@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-
+//Add List Constrraint
 void addConstraint(ListConstraint **list, Node *a, Node *b) {
     ListConstraint *newConstraint = (ListConstraint *)malloc(sizeof(ListConstraint));
     if (!newConstraint) {
@@ -16,6 +16,7 @@ void addConstraint(ListConstraint **list, Node *a, Node *b) {
     *list = newConstraint;
 }
 
+// a ⊇ ∗b
 void printConstraintComplex1(ListConstraint *list) {
     printf("Complex 1 Constraints:\n");
     while (list) {
@@ -24,6 +25,7 @@ void printConstraintComplex1(ListConstraint *list) {
     }
 }
 
+// ∗a ⊇ b
 void printConstraintComplex2(ListConstraint *list) {
     printf("Complex 2 Constraints:\n");
     while (list) {
