@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "./Node.h"
+#include "./Graph.h"
+
 // Estructura D (mapea nodos a enteros)
 typedef struct DMap {
     Node* node;         
