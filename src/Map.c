@@ -7,7 +7,7 @@ DMap* initDMap(Graph* graph) {
     while (currentGraph != NULL) {
         DMap *elem = (DMap *)malloc(sizeof(DMap));
         elem->node = currentGraph->node;
-        elem->value = -1;
+        elem->value = UNVISITED;
         elem->next = head;
         head = elem;
         currentGraph = graph->next;
@@ -37,7 +37,7 @@ int getDValue(DMap* dMap, Node* node) {
         }
         dMap = dMap->next;
     }
-    return -1; // Si no se encuentra, retorna ⊥
+    return UNVISITED; // Si no se encuentra, retorna ⊥
 }
 
 void setDValue(DMap* dMap, Node* node, int value) {

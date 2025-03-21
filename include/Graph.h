@@ -7,8 +7,6 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#define MAX_GRAPH 50
-
 // Grafo
 typedef struct Graph{
     Node* node;                // Nodo actual del grafo
