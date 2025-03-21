@@ -12,7 +12,7 @@
 DMap *D;  // Orden de visita de cada nodo
 RMap *R;  // Representante de SCC
 
-int I = 0;  // Contador global de orden de visita
+int I = 0;  // Contador global
 
 // Algorithm 2: Collapse SCCs
 void collapseSCC(Graph *G) {
@@ -25,15 +25,15 @@ void collapseSCC(Graph *G) {
     Graph *currentGraph = G;
     while (currentGraph != NULL) {
         if (getDValue(D, currentGraph->node) == UNVISITED) {
-            visitNode();            //ALGORITMO 3 QUE NO IMPLEMENTE TODAVIA
+            //ALGORITMO 3 QUE NO IMPLEMENTE TODAVIA
         }
     }
 
     currentGraph = G;
     // Segunda fase: Colapsar SCCs
-    for (currentGraph != NULL) {
+    while (currentGraph != NULL) {
         if (getRValue(R, currentGraph->node) != currentGraph->node) {       //Ver si los nodos puedo compararlos asi (creeria que si ya que contienen la misma direccion de memoria porque no se crean nuevos nodos)
-            unify();                                                        //TODAVIA NO LO IMPLEMENTE
+            //unify(currentGraph->node, getRValue(currentGraph->node))                                                       //TODAVIA NO LO IMPLEMENTE
         }
     }
 }
