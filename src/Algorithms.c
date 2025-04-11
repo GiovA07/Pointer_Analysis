@@ -15,6 +15,7 @@ RMap *R;  // Representante de SCC
 Set *C;
 //STACK
 Stack *S;
+Stack *T;
 
 int I = 0;  // Contador global
 
@@ -24,6 +25,7 @@ void collapseSCC(Graph *G) {
     D = initDMap(G);
     R = initRMap(G);
     S = createStack();
+    T = createStack();
     C = createSet();
 
     // Primera fase: Visitar nodos no visitados
@@ -84,7 +86,7 @@ void visitNode(Node* v, int *I) {
               setRValue(R, w, v);  
             }
         }
-        push(S, v);
+        push(T, v);
     }else {
         push(S,v);
     }

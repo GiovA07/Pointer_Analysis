@@ -7,7 +7,6 @@
 #include "../include/Adm.h"
 
 Graph* graph = NULL;
-Graph* mergeGraphs(Graph* g1, Graph* g2);
 
 extern int yylineno;
 int yylex();
