@@ -71,13 +71,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "../include/Algorithms.h"
 #include "../include/Node.h"
 #include "../include/ListConstraint.h"
 #include "../include/Graph.h"
 #include "../include/Adm.h"
 
 Graph* graph = NULL;
-Graph* mergeGraphs(Graph* g1, Graph* g2);
 
 extern int yylineno;
 int yylex();
@@ -512,7 +512,7 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    33,    33,    40,    41,    45,    63,    81,    93
+       0,    33,    33,    41,    42,    46,    64,    82,    94
 };
 #endif
 
@@ -1081,16 +1081,17 @@ yyreduce:
   case 2: /* program: statements  */
 #line 33 "sintaxis.y"
                                    { 
+                                    wave_Propagation(graph);
                                     printGraph(graph);
                                     printDot(graph, "../output/grafo.dot");
                                     printConstraintComplex1(listComplex1);
                                     printConstraintComplex2(listComplex2);
                                    }
-#line 1090 "sintaxis.tab.c"
+#line 1091 "sintaxis.tab.c"
     break;
 
   case 5: /* statement: ID ASIGNACION REF ID ';'  */
-#line 45 "sintaxis.y"
+#line 46 "sintaxis.y"
                              {
                                 Node *n1 = createNode((yyvsp[-4].string));
                                 Node *n2 = createNode((yyvsp[-1].string));
@@ -1109,11 +1110,11 @@ yyreduce:
                                 printf("Base Constraint: %s ⊇ {%s}\n", (yyvsp[-4].string), (yyvsp[-1].string));
                                 free((yyvsp[-4].string)); free((yyvsp[-1].string));
                              }
-#line 1113 "sintaxis.tab.c"
+#line 1114 "sintaxis.tab.c"
     break;
 
   case 6: /* statement: ID ASIGNACION ID ';'  */
-#line 63 "sintaxis.y"
+#line 64 "sintaxis.y"
                              {
                                 Node *n1 = createNode((yyvsp[-3].string));
                                 Node *n2 = createNode((yyvsp[-1].string));
@@ -1132,11 +1133,11 @@ yyreduce:
                                 printf("Simple Constraint: %s ⊇ %s\n", (yyvsp[-3].string), (yyvsp[-1].string));
                                 free((yyvsp[-3].string)); free((yyvsp[-1].string));
                              }
-#line 1136 "sintaxis.tab.c"
+#line 1137 "sintaxis.tab.c"
     break;
 
   case 7: /* statement: ID ASIGNACION DEREF ID ';'  */
-#line 81 "sintaxis.y"
+#line 82 "sintaxis.y"
                                  {
                                 Node *n1 = createNode((yyvsp[-4].string));
                                 Node *n2 = createNode((yyvsp[-1].string));
@@ -1149,11 +1150,11 @@ yyreduce:
                                 printf("Complex 1 Constraint: %s ⊇ *%s\n", (yyvsp[-4].string), (yyvsp[-1].string));
                                 free((yyvsp[-4].string)); free((yyvsp[-1].string));
                              }
-#line 1153 "sintaxis.tab.c"
+#line 1154 "sintaxis.tab.c"
     break;
 
   case 8: /* statement: DEREF ID ASIGNACION ID ';'  */
-#line 93 "sintaxis.y"
+#line 94 "sintaxis.y"
                                  {
                                 Node *n1 = createNode((yyvsp[-3].string));
                                 Node *n2 = createNode((yyvsp[-1].string));
@@ -1166,11 +1167,11 @@ yyreduce:
                                 printf("Complex 2 Constraint: *%s ⊇ %s\n", (yyvsp[-3].string), (yyvsp[-1].string));
                                 free((yyvsp[-3].string)); free((yyvsp[-1].string));
                              }
-#line 1170 "sintaxis.tab.c"
+#line 1171 "sintaxis.tab.c"
     break;
 
 
-#line 1174 "sintaxis.tab.c"
+#line 1175 "sintaxis.tab.c"
 
       default: break;
     }
@@ -1363,4 +1364,4 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 107 "sintaxis.y"
+#line 108 "sintaxis.y"

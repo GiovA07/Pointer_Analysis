@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "../include/Algorithms.h"
 #include "../include/Node.h"
 #include "../include/ListConstraint.h"
 #include "../include/Graph.h"
@@ -30,6 +31,7 @@ ListConstraint* listComplex2;
 %%
 
 program: statements                { 
+                                    wave_Propagation(graph);
                                     printGraph(graph);
                                     printDot(graph, "../output/grafo.dot");
                                     printConstraintComplex1(listComplex1);

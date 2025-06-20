@@ -10,7 +10,7 @@ Stack* createStack() {
 void push(Stack *stack, Node *node) {
     StackNode *newTop = (StackNode *)malloc(sizeof(StackNode));
 
-    if (!newNode) {
+    if (!newTop) {
         printf("Error \n");
         return;
     }

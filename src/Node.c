@@ -1,4 +1,5 @@
 #include "../include/Node.h"
+#include "../include/Set.h"
 
 Node* createNode(char *name) {
     Node *newNode = (Node *)malloc(sizeof(Node));
@@ -9,8 +10,8 @@ Node* createNode(char *name) {
     newNode->name = strdup(name);  // Asigna memoria y copia el string
 
     for (int i = 0; i < MAX_NODES; i++) {
-        newNode->references[i] = NULL;
-        newNode->edges[i] = NULL;
+        newNode->references = createSet();
+        newNode->edges = createSet();
     }
 
 
@@ -20,50 +21,50 @@ Node* createNode(char *name) {
 // Agrega una referencia a la lista de adyacencia
 void addReference(Node *node, Node *ref) {
     // Verificar si ya existe
-    for (int i = 0; i < MAX_NODES; i++) {
-        if (node->references[i] == ref) return;
-    }
+    if(existsInSet(node->references, ref))
+        return ;
 
-    // Buscar un espacio vacio
-    for (int i = 0; i < MAX_NODES; i++) {
-        if (node->references[i] == NULL) {
-            node->references[i] = ref;
-            return;
-        }
-    }
+    addToSet(&node->references, ref);
+}
+
+void removeReference(Node *node, Node *ref){
+    if(!existsInSet(node->references, ref))
+        return ;
+    
+    deleteFromSet(&node->references, ref);
 }
 
 void addEdgeInNode(Node *node, Node *edge) {
-    // Verificar si ya existe
-    for (int i = 0; i < MAX_NODES; i++) {
-        if (node->edges[i] == edge) return;
-    }
+    Set **edges = &node->edges;
+    if (existsInSet(*edges, edge)) return ;
 
-    // Buscar un espacio vacio
-    for (int i = 0; i < MAX_NODES; i++) {
-        if (node->edges[i] == NULL) {
-            node->edges[i] = edge;
-            return;
-        }
-    }
+    addToSet(edges, edge);
 }
+
+void removeEdgeInNode(Node *node, Node *edge) {
+    Set **edges = &node->edges;
+    if (!existsInSet(*edges, edge)) return ;
+
+    deleteFromSet(edges, edge);
+}
+
 
 // Lista de los nodos a los que apunta.
 void printReferences(Node *node) {
     printf("Nodo %s tiene las siguientes referencias:\n", node->name);
-    for (int i = 0; i < 10; i++) {
-        if (node->references[i] != NULL) {
-            printf("- %s\n", node->references[i]->name);
-        }
+    Set *ref = node->references;
+    while (ref != NULL) {
+        printf("- %s\n", ref->node->name);
+        ref = ref->next;
     }
 }
 
 // Lista de los nodos que tiene aristas.
 void printEdges(Node *node) {
     printf("Nodo %s tiene las siguientes referencias:\n", node->name);
-    for (int i = 0; i < 10; i++) {
-        if (node->references[i] != NULL) {
-            printf("- %s\n", node->edges[i]->name);
-        }
+    Set *edge = node->edges;
+    while (edge != NULL) {
+        printf("- %s\n", edge->node->name);
+        edge = edge->next;
     }
 }

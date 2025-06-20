@@ -4,13 +4,14 @@ Set* createSet(){
     return NULL;
 }
 
-void addToCSet(Set **set, Node *node) {
+void addToSet(Set **set, Node *node) {
     if(existsInSet(*set, node)) return ;
-
+    
     Set *newElem = (Set*)malloc(sizeof(Set));
     newElem->node = node;
     newElem->next = *set;
     *set = newElem;
+
 }
 
 int existsInSet(Set *set, Node *node) {
@@ -27,7 +28,7 @@ void deleteFromSet(Set **set, Node *node) {
     if(!existsInSet(*set, node)) return ;
 
     Set *prev = NULL;
-    Set* currentElem = set;
+    Set* currentElem = *set;
 
     while (currentElem != NULL)
     {
@@ -43,4 +44,11 @@ void deleteFromSet(Set **set, Node *node) {
     }
 
 
+}
+
+
+Set* nextElemSet(Set *set){
+    if (!set)
+        return NULL;
+    return set->next;
 }

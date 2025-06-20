@@ -1,11 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <limits.h>
-#include "../include/Graph.h"
-#include "../include/Stack.h"
-#include "../include/Map.h"
-#include "../include/Set.h"
-#include "../include/Stack.h"
+
+#include "../include/Algorithms.h"
+
 
 // Mapas para D y R
 DMap *D;  // Orden de visita de cada nodo
@@ -18,6 +13,15 @@ Stack *S;
 Stack *T;
 
 int I = 0;  // Contador global
+
+
+
+//Algorithm 1: Wave Propagation
+
+void wave_Propagation(Graph *G) {
+    collapseSCC(G);
+    printf("termino\n");
+}
 
 // Algorithm 2: Collapse SCCs
 void collapseSCC(Graph *G) {
@@ -33,6 +37,7 @@ void collapseSCC(Graph *G) {
     while (currentGraph != NULL) {
         if (getDValue(D, currentGraph->node) == UNVISITED) {
             visitNode(currentGraph->node, &I);
+            printf("termino visit node\n");
         }
         currentGraph = currentGraph->next;
     }
@@ -41,7 +46,7 @@ void collapseSCC(Graph *G) {
     // Segunda fase: Colapsar SCCs
     while (currentGraph != NULL) {
         if (getRValue(R, currentGraph->node) != currentGraph->node) {       //Ver si los nodos puedo compararlos asi (creeria que si ya que contienen la misma direccion de memoria porque no se crean nuevos nodos)
-            //unify(currentGraph->node, getRValue(currentGraph->node))                                                       //TODAVIA NO LO IMPLEMENTE
+            unify(G,currentGraph->node, getRValue(R,currentGraph->node));                                                       //TODAVIA NO LO IMPLEMENTE
         }
         currentGraph = currentGraph->next;
     }
@@ -51,14 +56,12 @@ void collapseSCC(Graph *G) {
 //Algorithm 3 Visit Node
 void visitNode(Node* v, int *I) {
     (*I)++;
-    setDValue(D, v, I);
+    setDValue(D, v, *I);
     setRValue(R, v, v);
 
-    //Para todo w tal que (node,w) ∈ edges
-    Node* edges[MAX_NODES] = v->edges;
-
-    for (int i = 0; i < MAX_NODES && edges[i] != NULL; i++) {
-        Node *w = edges[i];
+    Set *edge = v->edges;
+    while (edge != NULL) {
+        Node *w = edge->node;
         if (getDValue(D, w) == UNVISITED) visitNode(w, I);
 
         if (!existsInSet(C,w)) {
@@ -68,12 +71,13 @@ void visitNode(Node* v, int *I) {
             if (getDValue(D, RvalueInV) > getDValue(D, RvalueInW)) {
                 setRValue(R, v, RvalueInW);
             }
-            
+                
         }
+        edge = edge->next;
     }
     
     if (getRValue(R,v) == v) {
-        addToCSet(C,v);
+        addToSet(&C,v);
 
         while (!isEmpty(S)) {
             //let w be the node on the top of S
@@ -82,7 +86,7 @@ void visitNode(Node* v, int *I) {
                 break;
             } else {
               pop(S);
-              addToCSet(C,w);
+              addToSet(&C,w);
               setRValue(R, w, v);  
             }
         }
@@ -92,5 +96,44 @@ void visitNode(Node* v, int *I) {
     }
 }
 
+/*La unica forma en la que pienso esto, es viendo tanto REFERENCES y EDGES*/
+void unify(Graph* g, Node* v, Node* w){
+    Graph *currentGraph = g;
+    while (currentGraph) {
+        Node *currentNode = currentGraph->node;
+        //Si algun nodo tiene una arista con w, pasa a la de v.
+        if(currentNode && existsInSet(currentNode->edges, w)) {
+            addEdgeInNode(currentNode, v);
+            removeEdgeInNode(currentNode, w);
+        }
+
+        //Si algun nodo tiene una referencia con w, pasa tenerla con v.
+        if(currentNode && existsInSet(currentNode->references, w)) {
+            removeReference(currentNode, w);
+            addReference(currentNode, v);
+        }
+
+        currentGraph = currentGraph->next;
+    }
+
+    //remove el mismo
+    removeEdgeInNode(v, v);
+
+    //junta los apuntados
+    Set *references = w->references;
+    while (references!=NULL) {
+        addToSet(&v->references, references->node);
+        references = references->next;
+    }
+    
+    removeNode(&g, w);
+    
+}
 
 //Algorithm 4
+// void perform_Wave_Propagation() {
+
+//     while(!isEmpty(T)) {
+//         Node *v = top(T);
+//     }
+// }

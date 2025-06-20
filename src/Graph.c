@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../include/Graph.h"
+#include "../include/Set.h"
 
 
 // Busca un nodo en el grafo y devuelve su puntero, o NULL si no existe.
@@ -13,6 +14,11 @@ Graph* findNode(Graph *g, char *name) {
         g = g->next;
     }
     return NULL; // No encontrado
+}
+
+Graph* nextNode(Graph *g){
+    //Si no tiene next devolvera null.
+    return g->next;
 }
 
 // Agrega un nodo al grafo
@@ -30,23 +36,68 @@ void addNode(Graph **g, Node *node) {
     *g = nuevo;
 }
 
+void removeNode(Graph **g, Node *node) {
+    if (!g || !*g || !node) return;
+
+    Graph *current = *g;
+    Graph *prev = NULL;
+
+    while (current != NULL) {
+        if (current->node == node) {
+            // Eliminar el nodo de la lista
+            if (prev == NULL) {
+                // El nodo está al principio de la lista
+                *g = current->next;
+            } else {
+                prev->next = current->next;
+            }
+
+            // Liberar la memoria del nodo
+            free(current);
+            return;
+        }
+
+        prev = current;
+        current = current->next;
+    }
+}
+
 // Agrega una arista entre dos nodos
 void addEdge(Graph *from, Node* to) {
     if (!from || !to) {
         printf("Error: Nodo de origen o destino no válido.\n");
         return;
     }
+
     addEdgeInNode(from->node, to);
+}
+
+void removeEdge(Graph *from, Node* to){
+    if (!from || !to) {
+        printf("Error: Nodo de origen o destino no válido.\n");
+        return;
+    }
+
+    removeEdgeInNode(from->node, to);
 }
 
 // Imprime el grafo en formato de lista de adyacencia
 void printGraph(Graph *g) {
     while (g != NULL) {
+        printf("Nodo %s: References: \n", g->node->name);
+        Set *ref = g->node->references;
+        while (ref)
+        {
+            printf(" - %s", ref->node->name);
+            ref = ref->next;
+        }
+        printf("\n");        
+
         printf("Nodo %s: \n", g->node->name);
-        for (int i = 0; i < MAX_NODES; i++) {
-            if (g->node->edges[i] != NULL) {
-                printf(" -> %s\n", g->node->edges[i]->name);
-            }
+        Set *edge = g->node->edges;
+        while (edge != NULL) {
+           printf(" -> %s\n", edge->node->name);
+           edge = edge->next;
         }
         g = g->next;
     }
@@ -58,17 +109,14 @@ void generateDot(Graph *g, FILE* file) {
         Node* node = g->node;
         char refList[256] = "";
 
-        // Concatenar las referencias
-        int i = 0;
-        while (node->references[i] != NULL && i < MAX_NODES) {
-            strcat(refList, node->references[i]->name);
-            if (node->references[i+1] != NULL) {
+        Set *ref = node->references;
+        while(ref != NULL) {
+            strcat(refList, ref->node->name);
+            if (nextElemSet(ref) != NULL) {
                 strcat(refList, ", ");
             }
-            i++;
+            ref = nextElemSet(ref);
         }
-
-        
 
         fprintf(file, "%s [label=\"%s {%s}\"];\n", node->name, node->name, refList);
         g = g->next;
@@ -78,11 +126,13 @@ void generateDot(Graph *g, FILE* file) {
     g = gOriginal; 
     while (g) {
         Node* node = g->node;
-        for (int i = 0; i < MAX_NODES; i++) {
-            if (node->edges[i] != NULL) {
-                fprintf(file, "%s -> %s;\n", node->name, node->edges[i]->name);
-            }
+
+        Set* edge = node->edges;
+        while(edge != NULL) {
+            fprintf(file, "%s -> %s;\n", node->name, edge->node->name);
+            edge = nextElemSet(edge);
         }
+
         g = g->next;
     }
 }

@@ -10,7 +10,7 @@ DMap* initDMap(Graph* graph) {
         elem->value = UNVISITED;
         elem->next = head;
         head = elem;
-        currentGraph = graph->next;
+        currentGraph = currentGraph->next;
     }
     return head;
 }
@@ -24,7 +24,7 @@ RMap* initRMap(Graph* graph) {
         elem->representative = currentGraph->node;          //Inicialmente, cada nodo es su propio representante.
         elem->next = head;
         head = elem;
-        currentGraph = graph->next;
+        currentGraph = currentGraph->next;
     }
     return head;
 }

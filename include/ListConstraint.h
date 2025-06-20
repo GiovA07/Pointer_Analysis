@@ -1,7 +1,7 @@
 #ifndef LISTCONSTRAINT_H
 #define LISTCONSTRAINT_H
 
-#include "node.h"
+#include "Node.h"
 
 typedef struct ListConstraint {
     Node *superset;                     // 'a' (el conjunto más grande en la restricción)
