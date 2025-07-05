@@ -53,10 +53,6 @@ Set* set_nextElem(Set *set){
 }
 
 Set* set_difference(Set *current, Set *old) {
-    if(!current || !old) {
-        fprintf(stderr, "Error: sets not valid to make their difference.\n");
-        exit(EXIT_FAILURE);
-    }
     Set *result = createSet();
 
     while(current != NULL) {
@@ -64,5 +60,49 @@ Set* set_difference(Set *current, Set *old) {
             set_addElem(&result, current->node);
         }
         current = set_nextElem(current);
+    }
+    return result;
+}
+
+
+Set* set_union(Set *set1, Set *set2) {
+    // Resultado empieza vacio
+    Set *result = createSet();
+    Set *cur;
+
+    // agregamos todos los elementos de set1 y set2
+    cur = set1;
+    while (cur != NULL) {
+        set_addElem(&result, cur->node);
+        cur = cur->next;
+    }
+
+    cur = set2;
+    while (cur != NULL) {
+        set_addElem(&result, cur->node);
+        cur = cur->next;
+    }
+
+    return result;
+}
+
+Set* set_clone(Set *src) {
+    Set *clone = NULL;
+    Set *cur = src;
+    while (cur) {
+        // set_addElem ya comprueba duplicados, pero como clone empieza NULL
+        set_addElem(&clone, cur->node);
+        cur = cur->next;
+    }
+    return clone;
+}
+
+
+void set_destroy(Set *s) {
+    Set *cur = s;
+    while (cur) {
+        Set *next = cur->next;
+        free(cur);
+        cur = next;
     }
 }

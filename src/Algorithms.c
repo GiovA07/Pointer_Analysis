@@ -20,6 +20,7 @@ int I = 0;  // Contador global
 
 void wave_Propagation(Graph *G) {
     collapseSCC(G);
+    perform_Wave_Propagation();
     printf("termino\n");
 }
 
@@ -37,7 +38,6 @@ void collapseSCC(Graph *G) {
     while (currentGraph != NULL) {
         if (getDValue(D, currentGraph->node) == UNVISITED) {
             visitNode(currentGraph->node, &I);
-            printf("termino visit node\n");
         }
         currentGraph = currentGraph->next;
     }
@@ -131,9 +131,26 @@ void unify(Graph* g, Node* v, Node* w){
 }
 
 //Algorithm 4
-// void perform_Wave_Propagation() {
+void perform_Wave_Propagation() {
 
-//     while(!isEmpty(T)) {
-//         Node *v = top(T);
-//     }
-// }
+    while(!isEmpty(T)) {
+        Node *v = top(T);
+        pop(T);
+        Set *pdif = set_difference(v->references, v->pold);
+        Set *new_pold = set_clone(v->references);
+        set_destroy(v->pold);
+        v->pold = new_pold;
+
+        Set* currentEdge = v->edges;
+        while (currentEdge != NULL) {
+            Node* w = currentEdge->node;
+            Set *ref = w->references;
+            w->references = set_union(w->references, pdif);
+            currentEdge = set_nextElem(currentEdge);
+            set_destroy(ref);
+        }
+
+        set_destroy(pdif);
+    }
+}
+

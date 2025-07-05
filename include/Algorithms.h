@@ -10,9 +10,9 @@
 #ifndef ALGORITHMS_H
 #define ALGORITHMS_H
 
-void wave_Propagation(Graph *G);
-void collapseSCC(Graph *G);
-void visitNode(Node* v, int *I);
+void wave_Propagation(Graph *G); //Algoritmo 1
+void collapseSCC(Graph *G); //Algoritmo 2
+void visitNode(Node* v, int *I); //Algoritmo 3
 void unify(Graph* g, Node* v, Node* w);
-
+void perform_Wave_Propagation(); //Algoritmo 4
 #endif
