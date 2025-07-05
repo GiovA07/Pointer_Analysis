@@ -7,6 +7,7 @@
         "graph.h": "c",
         "typeinfo": "c",
         "set.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "stdio.h": "c"
     }
 }

@@ -9,9 +9,11 @@
 
 // Estructura de un nodo del grafo
 typedef struct Node {
-    char* name;                            // Nombre del nodo (variable)
-    struct Set* references;    // Lista de variables a las que apunta
-    struct Set* edges;         // Lista de nodos con los que tiene aristas
+    char* name;
+    struct Set* references;    // Pcur(v): el conjunto “actual” de referencias
+    struct Set* pold;          // Pold(v): lo que ya hemos enviado en la última iteración
+    struct Set* edges;         // aristas del grafo
+
 } Node;
 
 // Funciones para manejar los nodos

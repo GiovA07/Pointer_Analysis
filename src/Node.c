@@ -12,6 +12,7 @@ Node* createNode(char *name) {
     for (int i = 0; i < MAX_NODES; i++) {
         newNode->references = createSet();
         newNode->edges = createSet();
+        newNode->pold = createSet();
     }
 
 
@@ -21,31 +22,31 @@ Node* createNode(char *name) {
 // Agrega una referencia a la lista de adyacencia
 void addReference(Node *node, Node *ref) {
     // Verificar si ya existe
-    if(existsInSet(node->references, ref))
+    if(set_existElem(node->references, ref))
         return ;
 
-    addToSet(&node->references, ref);
+    set_addElem(&node->references, ref);
 }
 
 void removeReference(Node *node, Node *ref){
-    if(!existsInSet(node->references, ref))
+    if(!set_existElem(node->references, ref))
         return ;
     
-    deleteFromSet(&node->references, ref);
+    set_deleteElem(&node->references, ref);
 }
 
 void addEdgeInNode(Node *node, Node *edge) {
     Set **edges = &node->edges;
-    if (existsInSet(*edges, edge)) return ;
+    if (set_existElem(*edges, edge)) return ;
 
-    addToSet(edges, edge);
+    set_addElem(edges, edge);
 }
 
 void removeEdgeInNode(Node *node, Node *edge) {
     Set **edges = &node->edges;
-    if (!existsInSet(*edges, edge)) return ;
+    if (!set_existElem(*edges, edge)) return ;
 
-    deleteFromSet(edges, edge);
+    set_deleteElem(edges, edge);
 }
 
 

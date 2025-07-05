@@ -16,9 +16,9 @@ typedef struct Set{
 
 
 Set* createSet();
-Set* nextElemSet(Set *set);
-void addToSet(Set **set, Node *node); // Agregar un nodo al conjunto
-int existsInSet(Set *set, Node *node); // Verificar si un nodo esta en el conjunto
-void deleteFromSet(Set **set, Node *node); // Eliminar un nodo del conjunto
-
+Set* set_nextElem(Set *set);
+void set_addElem(Set **set, Node *node); // Agregar un nodo al conjunto
+int set_existElem(Set *set, Node *node); // Verificar si un nodo esta en el conjunto
+void set_deleteElem(Set **set, Node *node); // Eliminar un nodo del conjunto
+Set* set_difference(Set *current, Set *old);
 #endif

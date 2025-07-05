@@ -64,7 +64,7 @@ void visitNode(Node* v, int *I) {
         Node *w = edge->node;
         if (getDValue(D, w) == UNVISITED) visitNode(w, I);
 
-        if (!existsInSet(C,w)) {
+        if (!set_existElem(C,w)) {
             //R(v) ← (D(R(v)) < D(R(w))) ? R(v) : R(w)
             Node *RvalueInV = getRValue(R,v);
             Node *RvalueInW = getRValue(R,w);
@@ -77,7 +77,7 @@ void visitNode(Node* v, int *I) {
     }
     
     if (getRValue(R,v) == v) {
-        addToSet(&C,v);
+        set_addElem(&C,v);
 
         while (!isEmpty(S)) {
             //let w be the node on the top of S
@@ -86,7 +86,7 @@ void visitNode(Node* v, int *I) {
                 break;
             } else {
               pop(S);
-              addToSet(&C,w);
+              set_addElem(&C,w);
               setRValue(R, w, v);  
             }
         }
@@ -102,13 +102,13 @@ void unify(Graph* g, Node* v, Node* w){
     while (currentGraph) {
         Node *currentNode = currentGraph->node;
         //Si algun nodo tiene una arista con w, pasa a la de v.
-        if(currentNode && existsInSet(currentNode->edges, w)) {
+        if(currentNode && set_existElem(currentNode->edges, w)) {
             addEdgeInNode(currentNode, v);
             removeEdgeInNode(currentNode, w);
         }
 
         //Si algun nodo tiene una referencia con w, pasa tenerla con v.
-        if(currentNode && existsInSet(currentNode->references, w)) {
+        if(currentNode && set_existElem(currentNode->references, w)) {
             removeReference(currentNode, w);
             addReference(currentNode, v);
         }
@@ -122,7 +122,7 @@ void unify(Graph* g, Node* v, Node* w){
     //junta los apuntados
     Set *references = w->references;
     while (references!=NULL) {
-        addToSet(&v->references, references->node);
+        set_addElem(&v->references, references->node);
         references = references->next;
     }
     
