@@ -32,10 +32,7 @@ ListConstraint* listComplex2;
 
 program: statements                { 
                                     wave_Propagation(graph);
-                                    printGraph(graph);
                                     printDot(graph, "../output/grafo.dot");
-                                    printConstraintComplex1(listComplex1);
-                                    printConstraintComplex2(listComplex2);
                                    }
 
 statements: statements statement
@@ -86,6 +83,11 @@ statement:
                                 addNode(&graph, n1);
                                 addNode(&graph, n2);
 
+                                Graph* aux = findNode(graph, n1->name);
+                                Graph* aux2 = findNode(graph, n2->name);
+                                n1 = aux->node;
+                                n2 = aux2->node;
+
                                 addConstraint(&listComplex1, n1, n2);
 
                                 printf("Complex 1 Constraint: %s ⊇ *%s\n", $1, $4);
@@ -97,6 +99,11 @@ statement:
 
                                 addNode(&graph, n1);
                                 addNode(&graph, n2);
+
+                                Graph* aux = findNode(graph, n1->name);
+                                Graph* aux2 = findNode(graph, n2->name);
+                                n1 = aux->node;
+                                n2 = aux2->node;
 
                                 addConstraint(&listComplex2, n1, n2);
 

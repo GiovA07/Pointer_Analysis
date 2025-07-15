@@ -5,8 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "Graph.h"
-#include "Node.h"
+typedef struct Node Node;
 
 // Estructura para el conjunto C
 typedef struct Set{
@@ -24,4 +23,7 @@ Set* set_difference(Set *current, Set *old);
 Set* set_union(Set *set1, Set *set2);
 Set* set_clone(Set *src);
 void set_destroy(Set *s);
+
+void set_print(Set *s);
+
 #endif

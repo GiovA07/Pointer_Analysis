@@ -15,8 +15,13 @@ Node* createNode(char *name) {
         newNode->pold = createSet();
     }
 
-
     return newNode;
+}
+
+void node_setReferences(Node *node, Set *src) {
+    Set *oldSet = node->references;
+    node->references = src;
+    set_destroy(oldSet);
 }
 
 // Agrega una referencia a la lista de adyacencia
@@ -47,6 +52,15 @@ void removeEdgeInNode(Node *node, Node *edge) {
     if (!set_existElem(*edges, edge)) return ;
 
     set_deleteElem(edges, edge);
+}
+
+int existEdgeInNode(Node *node, Node *ref) {
+    Set *edge = node->edges;
+    while (edge) {
+        if(edge->node = ref) return 1;
+        set_nextElem(edge);
+    }
+    return 0;
 }
 
 

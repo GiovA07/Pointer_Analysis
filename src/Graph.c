@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../include/Graph.h"
-#include "../include/Set.h"
 
 
 // Busca un nodo en el grafo y devuelve su puntero, o NULL si no existe.

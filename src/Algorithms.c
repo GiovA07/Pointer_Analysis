@@ -21,6 +21,7 @@ int I = 0;  // Contador global
 void wave_Propagation(Graph *G) {
     collapseSCC(G);
     perform_Wave_Propagation();
+    add_new_edges();
     printf("termino\n");
 }
 
@@ -34,21 +35,19 @@ void collapseSCC(Graph *G) {
     C = createSet();
 
     // Primera fase: Visitar nodos no visitados
-    Graph *currentGraph = G;
-    while (currentGraph != NULL) {
-        if (getDValue(D, currentGraph->node) == UNVISITED) {
-            visitNode(currentGraph->node, &I);
+
+    for (Graph *curGraph = G; curGraph; curGraph = curGraph->next) {
+        if (getDValue(D, curGraph->node) == UNVISITED) {
+            visitNode(curGraph->node, &I);
         }
-        currentGraph = currentGraph->next;
     }
 
-    currentGraph = G;
     // Segunda fase: Colapsar SCCs
-    while (currentGraph != NULL) {
-        if (getRValue(R, currentGraph->node) != currentGraph->node) {       //Ver si los nodos puedo compararlos asi (creeria que si ya que contienen la misma direccion de memoria porque no se crean nuevos nodos)
-            unify(G,currentGraph->node, getRValue(R,currentGraph->node));                                                       //TODAVIA NO LO IMPLEMENTE
-        }
-        currentGraph = currentGraph->next;
+    for (Graph *curGraph = G; curGraph; curGraph = curGraph->next) {
+        Node *v = curGraph->node;
+        Node *r = getRValue(R, v);
+        if (r != v)
+            unify(G, v, r);
     }
 }
 
@@ -97,6 +96,7 @@ void visitNode(Node* v, int *I) {
 }
 
 /*La unica forma en la que pienso esto, es viendo tanto REFERENCES y EDGES*/
+
 void unify(Graph* g, Node* v, Node* w){
     Graph *currentGraph = g;
     while (currentGraph) {
@@ -116,18 +116,20 @@ void unify(Graph* g, Node* v, Node* w){
         currentGraph = currentGraph->next;
     }
 
-    //remove el mismo
+    //remove el autociclo si existe
     removeEdgeInNode(v, v);
 
-    //junta los apuntados
-    Set *references = w->references;
-    while (references!=NULL) {
-        set_addElem(&v->references, references->node);
-        references = references->next;
-    }
-    
+    //junta los apuntados y elimina el nodo w del grafo
+    mergeNodes(v, w);
     removeNode(&g, w);
     
+}
+
+void mergeNodes(Node *v, Node *w) {
+    // set_union devuelve el nuevo set de referencias
+    Set *mergedRefs = set_union(v->references, w->references);
+    set_destroy(v->references);
+    v->references = mergedRefs;
 }
 
 //Algorithm 4
@@ -136,21 +138,89 @@ void perform_Wave_Propagation() {
     while(!isEmpty(T)) {
         Node *v = top(T);
         pop(T);
+        //Pdif ← Pcur(v) − Pold(v)
         Set *pdif = set_difference(v->references, v->pold);
-        Set *new_pold = set_clone(v->references);
+        //Pold(v) ← Pcur(v)
         set_destroy(v->pold);
-        v->pold = new_pold;
+        v->pold = set_clone(v->references);
 
-        Set* currentEdge = v->edges;
-        while (currentEdge != NULL) {
-            Node* w = currentEdge->node;
-            Set *ref = w->references;
-            w->references = set_union(w->references, pdif);
-            currentEdge = set_nextElem(currentEdge);
-            set_destroy(ref);
+        //por cada w tal que (v,w) ∈ E, Pcur(w) ← Pcur(w) ∪ Pdif
+        for (Set *edge = v->edges; edge; edge = edge->next) {
+            Node* w = edge->node;
+            propagationTo(w, pdif);
         }
 
         set_destroy(pdif);
     }
 }
 
+// Propaga el conjunto pdif desde v a w
+void propagationTo(Node *w, Set *pdif) {
+    Set *oldRefs = w->references;
+    w->references = set_union(oldRefs, pdif);
+    set_destroy(oldRefs);
+}
+
+//Algorith 5
+void add_new_edges() {
+    //Complex 1
+    ListConstraint *currentConstraint = listComplex1;
+    while (currentConstraint) {
+        Node *l             = constraint_getL(currentConstraint);
+        Node *r             = constraint_getR(currentConstraint);
+
+        Set *pCache         = constraint_getCache(currentConstraint);
+        //Pnew ← Pcur(r) − Pcache(c)
+        Set *pNew           = set_difference(r->references, pCache);
+        //Pcache(c) ← Pcache(c) ∪ Pnew
+        Set *unionCacheNew  = set_union(pCache, pNew);
+        constraint_setCache(currentConstraint,unionCacheNew);
+        
+        // for v ∈ Pnew do …
+        Set *pNewIter = pNew; 
+        while (pNewIter) {
+            /*(v,l) /∈ E */
+            Node *v = pNewIter->node;
+
+            if(!existEdgeInNode(v, l)) {
+                addEdgeInNode(v,l);
+                Set *newPCurL = set_union(l->references, v->pold);
+                node_setReferences(l, newPCurL);
+            }
+            pNewIter = set_nextElem(pNewIter);
+        }
+        set_destroy(pNew);
+        set_destroy(pCache);
+        currentConstraint = constraint_getNext(currentConstraint);
+    }
+    
+    //Complex 2
+    currentConstraint = listComplex2;
+    while (currentConstraint) {
+        Node *l = constraint_getL(currentConstraint);
+        Node *r = constraint_getR(currentConstraint);
+
+        Set *pCache = constraint_getCache(currentConstraint);
+        Set *pNew = set_difference(l->references, pCache);
+        
+        Set *unionCacheNew = set_union(pCache, pNew);
+        constraint_setCache(currentConstraint,unionCacheNew);
+
+        Set *pNewIter = pNew; 
+        while (pNewIter) {
+            /*(r, v) /∈ E  */
+            Node *v = pNewIter->node;
+
+            if(!existEdgeInNode(r,v)) {
+                addEdgeInNode(r,v);
+                Set *newPCurV = set_union(v->references, r->pold);
+                node_setReferences(v, newPCurV);
+            }
+            pNewIter = set_nextElem(pNewIter);
+        }
+        set_destroy(pNew);
+        set_destroy(pCache);
+        currentConstraint = constraint_getNext(currentConstraint);
+    }
+    
+}

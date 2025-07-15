@@ -1,5 +1,5 @@
 #include "../include/Set.h"
-
+#include "../include/Node.h" 
 Set* createSet(){
     return NULL;
 }
@@ -104,5 +104,12 @@ void set_destroy(Set *s) {
         Set *next = cur->next;
         free(cur);
         cur = next;
+    }
+}
+
+void set_print(Set *set) {
+    while (set) {
+        printf("Elemento: %s\n", set->node->name);
+        set = set->next;
     }
 }
