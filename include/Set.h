@@ -15,13 +15,17 @@ typedef struct Set{
 
 
 Set* createSet();
+
 Set* set_nextElem(Set *set);
+
 void set_addElem(Set **set, Node *node); // Agregar un nodo al conjunto
 int set_existElem(Set *set, Node *node); // Verificar si un nodo esta en el conjunto
 void set_deleteElem(Set **set, Node *node); // Eliminar un nodo del conjunto
+
 Set* set_difference(Set *current, Set *old);
 Set* set_union(Set *set1, Set *set2);
 Set* set_clone(Set *src);
+
 void set_destroy(Set *s);
 
 void set_print(Set *s);

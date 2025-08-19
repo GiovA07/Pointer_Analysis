@@ -27,8 +27,10 @@ typedef struct RMap {
 
 DMap* initDMap(Graph* graph);
 RMap* initRMap(Graph* graph);
+
 int getDValue(DMap* dMap, Node* node);
 Node* getRValue(RMap* rMap, Node* node);
+
 void setDValue(DMap* dMap, Node* node, int value);
 void setRValue(RMap* rMap, Node* node, Node* representative);
 

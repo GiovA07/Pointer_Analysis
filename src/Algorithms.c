@@ -6,18 +6,18 @@
 DMap *D;  // Orden de visita de cada nodo
 RMap *R;  // Representante de SCC
 
-//SET C
+// SET C y STACKS S, T usadas en (Alg.2/Alg.3)
 Set *C;
-//STACK
 Stack *S;
 Stack *T;
 
-int I = 0;  // Contador global
+int I = 0;  // contador global para numerar nodos (D)
 
 
-
-//Algorithm 1: Wave Propagation
-
+/*
+ * Algorithm 1: Wave Propagation
+ * - Repite: colapsar SCCs, propagar (onda) en orden tropologico y añadir nuevas aristas.
+ */
 void wave_Propagation(Graph *G) {
     collapseSCC(G);
     perform_Wave_Propagation();
@@ -28,14 +28,13 @@ void wave_Propagation(Graph *G) {
 // Algorithm 2: Collapse SCCs
 void collapseSCC(Graph *G) {
 
-    D = initDMap(G);
-    R = initRMap(G);
+    D = initDMap(G);        // todos D(v) = UNVISITED (⊥)
+    R = initRMap(G);        // R(v) = v inicialmente
     S = createStack();
     T = createStack();
     C = createSet();
 
     // Primera fase: Visitar nodos no visitados
-
     for (Graph *curGraph = G; curGraph; curGraph = curGraph->next) {
         if (getDValue(D, curGraph->node) == UNVISITED) {
             visitNode(curGraph->node, &I);
@@ -43,6 +42,7 @@ void collapseSCC(Graph *G) {
     }
 
     // Segunda fase: Colapsar SCCs
+    // Para cada v con R(v) != v, unify(v, R(v)) -> mover aristas/referencias a representative.
     for (Graph *curGraph = G; curGraph; curGraph = curGraph->next) {
         Node *v = curGraph->node;
         Node *r = getRValue(R, v);
@@ -52,17 +52,27 @@ void collapseSCC(Graph *G) {
 }
 
 
-//Algorithm 3 Visit Node
+
+/*
+ * Algorithm 3: visitNode
+ * Entradas:
+ *   v: nodo actual
+ *   I: puntero al contador global (se incrementa para asignar D)
+ */
+
 void visitNode(Node* v, int *I) {
     (*I)++;
-    setDValue(D, v, *I);
-    setRValue(R, v, v);
-
+    setDValue(D, v, *I);    // D(v) <- I
+    setRValue(R, v, v);     // R(v) <- v inicialmente
+    // Recorremos todos los sucesores (v,w) ∈ E
     Set *edge = v->edges;
     while (edge != NULL) {
         Node *w = edge->node;
-        if (getDValue(D, w) == UNVISITED) visitNode(w, I);
+        // Si w no visitado, recursivamente lo visitamos
+        if (getDValue(D, w) == UNVISITED) 
+            visitNode(w, I);
 
+        // Solo consideramos R(w) si w no esta ya en C 
         if (!set_existElem(C,w)) {
             //R(v) ← (D(R(v)) < D(R(w))) ? R(v) : R(w)
             Node *RvalueInV = getRValue(R,v);
@@ -70,23 +80,24 @@ void visitNode(Node* v, int *I) {
             if (getDValue(D, RvalueInV) > getDValue(D, RvalueInW)) {
                 setRValue(R, v, RvalueInW);
             }
-                
         }
         edge = edge->next;
     }
-    
+    // Si R(v) == v entonces v es representante de una SCC
     if (getRValue(R,v) == v) {
-        set_addElem(&C,v);
+        set_addElem(&C,v);  // marcar v en C
 
+        // Extraer de S todos los nodos con D(w) > D(v) y unificarlos a v
         while (!isEmpty(S)) {
             //let w be the node on the top of S
             Node *w = top(S);
             if (getDValue(D, w) <= getDValue(D, v)) {
+                // encontramos uno que no pertenece a esta SCC
                 break;
             } else {
               pop(S);
-              set_addElem(&C,w);
-              setRValue(R, w, v);  
+              set_addElem(&C,w);    // añadir w a C
+              setRValue(R, w, v);   // R(w) <- v (representante)
             }
         }
         push(T, v);
@@ -96,18 +107,28 @@ void visitNode(Node* v, int *I) {
 }
 
 /*La unica forma en la que pienso esto, es viendo tanto REFERENCES y EDGES*/
+/*
+ * unify: Mueve aristas y referencias de w hacia v y elimina w del grafo.
+ * - Es la operacion que realiza el "colapso" del nodo w dentro de v.
+ * - Debe actualizar:
+ *    - Aristas entrantes: si x->w entonces ahora x->v (remover x->w).
+ *    - Referencias (Pcur/Pold etc): trasladarlas a v.
+ *    - Eliminar autociclos (v->v) si aparecen.
+ *    - mergeNodes(v,w) para fusionar estructuras (refs).
+ *    - removeNode(&g, w) para eliminar w.
+ *
+ */
 
 void unify(Graph* g, Node* v, Node* w){
     Graph *currentGraph = g;
     while (currentGraph) {
         Node *currentNode = currentGraph->node;
-        //Si algun nodo tiene una arista con w, pasa a la de v.
+        // Si currentNode tiene una arista hacia w, reemplazarla por una arista hacia v.
         if(currentNode && set_existElem(currentNode->edges, w)) {
             addEdgeInNode(currentNode, v);
             removeEdgeInNode(currentNode, w);
         }
-
-        //Si algun nodo tiene una referencia con w, pasa tenerla con v.
+        // Si currentNode tiene una referencia (Pcur/Pold) hacia w, reemplazarla por v.
         if(currentNode && set_existElem(currentNode->references, w)) {
             removeReference(currentNode, w);
             addReference(currentNode, v);
@@ -116,15 +137,22 @@ void unify(Graph* g, Node* v, Node* w){
         currentGraph = currentGraph->next;
     }
 
-    //remove el autociclo si existe
+    // Eliminar posible autociclo creado (si v apuntaba a w y ahora apunta a si mismo)
     removeEdgeInNode(v, v);
 
-    //junta los apuntados y elimina el nodo w del grafo
+    // Fusionar las referencias de w en v
     mergeNodes(v, w);
+    // Finalmente eliminar el nodo w del grafo
     removeNode(&g, w);
     
 }
 
+
+/*
+ * mergeNodes: combina el conjunto de referencias
+ * (Pcur/Pold u otros sets relacionados) de w dentro de v.
+ * - usamos set_union y reemplazamos v->references por la unión.
+ */
 void mergeNodes(Node *v, Node *w) {
     // set_union devuelve el nuevo set de referencias
     Set *mergedRefs = set_union(v->references, w->references);
@@ -132,7 +160,12 @@ void mergeNodes(Node *v, Node *w) {
     v->references = mergedRefs;
 }
 
-//Algorithm 4
+/*
+ * Algorithm 4: perform_Wave_Propagation
+ * - Propaga las diferencias Pdif = Pcur(v) - Pold(v) a los sucesores de v,
+ *   recorriendo T.
+ * - Mantiene el invariante Pold(v) ⊆ Pcur(v).
+*/
 void perform_Wave_Propagation() {
 
     while(!isEmpty(T)) {
@@ -161,7 +194,13 @@ void propagationTo(Node *w, Set *pdif) {
     set_destroy(oldRefs);
 }
 
-//Algorith 5
+/*Algorith 5 
+* - Recorre las constraints de tipo Complex1 (l ⊇ *r) y Complex2 (*l ⊇ r)
+* - Para cada constraint mantiene un Pcache(c) (cache de nodos ya procesados).
+* - Calcula Pnew = Pcur(r) - Pcache(c) y para cada v ∈ Pnew:
+*     - si (v,l) ∉ E entonces añade la arista y actualiza Pcur(l) con Pold(v)
+* - Análogo para Complex2.
+*/
 void add_new_edges() {
     //Complex 1
     ListConstraint *currentConstraint = listComplex1;

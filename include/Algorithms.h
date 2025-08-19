@@ -1,3 +1,7 @@
+#ifndef ALGORITHMS_H
+#define ALGORITHMS_H
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -9,19 +13,15 @@
 #include "ListConstraint.h"
 
 
-#ifndef ALGORITHMS_H
-#define ALGORITHMS_H
-
-
 extern ListConstraint* listComplex1;
 extern ListConstraint* listComplex2;
 
 void wave_Propagation(Graph *G);        //Algorithm 1
 void collapseSCC(Graph *G);             //Algorithm 2
-void mergeNodes(Node *v, Node *w);
+void mergeNodes(Node *v, Node *w);      
 void visitNode(Node* v, int *I);        //Algorithm 3
-void unify(Graph* g, Node* v, Node* w);
+void unify(Graph* g, Node* v, Node* w); //Unifica los nodos para que se vuelvan 1 solo.
 void perform_Wave_Propagation();        //Algorithm 4
-void propagationTo(Node *w, Set *pdif);
+void propagationTo(Node *w, Set *pdif); //Propaga el conjunto de apuntados a un nodo en particular.
 void add_new_edges();                   //Algorithm 5
 #endif

@@ -27,7 +27,6 @@ void removeReference(Node *node, Node *ref);
 
 void addEdgeInNode(Node *node, Node *edge);
 void removeEdgeInNode(Node *node, Node *ref);
-
 int existEdgeInNode(Node *node, Node *ref);
 
 void printReferences(Node *node);

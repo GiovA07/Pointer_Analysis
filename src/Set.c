@@ -11,7 +11,6 @@ void set_addElem(Set **set, Node *node) {
     newElem->node = node;
     newElem->next = *set;
     *set = newElem;
-
 }
 
 int set_existElem(Set *set, Node *node) {
