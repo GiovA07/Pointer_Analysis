@@ -2,7 +2,7 @@ digraph{
 
 rankdir=TB;
 
-D [label="D {G}"];
+D [label="D {G, E}"];
 F [label="F {A}"];
 A [label="A {E}"];
 G [label="G {A}"];

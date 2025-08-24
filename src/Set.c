@@ -108,7 +108,7 @@ void set_destroy(Set *s) {
 
 void set_print(Set *set) {
     while (set) {
-        printf("Elemento: %s\n", set->node->name);
+        printf("- %s\n", set->node->name);
         set = set->next;
     }
 }
