@@ -32,6 +32,13 @@ Set* constraint_getCache(ListConstraint *list) {
     return list->pcache;
 }
 
+void constraint_setL(ListConstraint *list, Node *rep) {
+    list->superset = rep;
+}
+
+void constraint_setR(ListConstraint *list, Node *rep) {
+    list->dereferenced = rep;
+}
 void constraint_setCache(ListConstraint *list, Set *newCache) {
     Set *exCache = list->pcache;
     list->pcache = newCache;

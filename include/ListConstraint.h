@@ -13,7 +13,9 @@ typedef struct ListConstraint {
 
 void addConstraint(ListConstraint **list, Node *a, Node *b);
 Node* constraint_getL (ListConstraint *list);
+void constraint_setL(ListConstraint *list, Node *rep);
 Node* constraint_getR (ListConstraint *list);
+void constraint_setR(ListConstraint *list, Node *rep);
 Set* constraint_getCache(ListConstraint *list);
 
 void constraint_setCache(ListConstraint *list, Set *newCache);

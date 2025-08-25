@@ -26,9 +26,19 @@ int I;
  */
 
 void wave_Propagation(Graph *G) {
-    collapseSCC(G);
-    perform_Wave_Propagation();
-    add_new_edges();
+    int result;
+    int num = 0;
+    do {
+        result = 0;
+        printf("Colapse de Repeticion %d \n", num);
+        collapseSCC(G);
+        printf("Perform de Repeticion %d \n", num);
+        perform_Wave_Propagation();
+        printf("Añadir nuevos edges en Repeticion: %d \n", num);
+        result = add_new_edges();
+        num = num+1;
+    } while (result == 1);
+    printf("Termino \n");
 }
 
 /*
@@ -55,6 +65,8 @@ void collapseSCC(Graph *G) {
     C = createSet();
     I = 0;
 
+    printf("Inicializacion de las estructuras realizada \n");
+
     // Primera fase: Visitar nodos no visitados
     for (Graph *curGraph = G; curGraph; curGraph = curGraph->next) {
         if (getDValue(D, curGraph->node) == UNVISITED) {
@@ -62,13 +74,98 @@ void collapseSCC(Graph *G) {
         }
     }
 
+    printf("Visitar nodos no visitados realizada \n");
+
     // Segunda fase: Collapse Strongly Connected Components (SCCs)
     // Para cada v con R(v) != v, unify(v, R(v)) -> mover aristas/referencias a representative.
-    for (Graph *curGraph = G; curGraph; curGraph = curGraph->next) {
+    for (Graph *curGraph = G; curGraph;) {
         Node *v = curGraph->node;
         Node *r = getRValue(R, v);
-        if (r != v)
-            unify(G, v, r);
+        Graph *next = curGraph->next;  
+        if(v) 
+            printf("v es: %s \n", v->name);
+        if(r) 
+            printf("r es: %s \n", r->name);
+        if (r != v) {
+            //  printf("El nodo v es: %s y el nodo r es: %s \n", v->name, r->name);
+            //  printf("Pold de %s: \n", v->name);
+            //  set_print(v->pold);
+            // printf("Pold de %s: \n", r->name);
+            //  set_print(r->pold);
+            // printf("References de %s: \n", v->name);
+            //  set_print(v->references);
+            // printf("References de %s: \n", r->name);
+            //  set_print(r->references);
+            unify(G, r, v);
+            printf("Termino el unify \n");
+        }
+        curGraph = next;
+    }
+    printf("SCCs realizada \n");
+}
+
+
+/*
+ * unify(g, v, w)
+ * ----------------------------------------------------------------------------
+ * Colapsa el nodo w dentro del representante v.
+ *
+ * Que actualiza:
+ *   - Aristas entrantes x->w  se reemplazan por x->v.
+ *   - Referencias (points-to) hacia w se redirigen a v.
+ *   - Se elimina el posible autociclo v->v si aparece.
+ *   - Se fusionan Pcur/Pold: v := (v ∪ w) (mergeNodes).
+ *   - Se elimina w del grafo.
+ */
+
+void unify(Graph* g, Node* v, Node* w){
+    Graph *currentGraph = g;
+    if (v == w) return;
+    while (currentGraph) {
+        Node *currentNode = currentGraph->node;
+        // Si currentNode tiene una arista hacia w, reemplazarla por una arista hacia v.
+        if(currentNode && set_existElem(currentNode->edges, w)) {
+            addEdgeInNode(currentNode, v);
+            removeEdgeInNode(currentNode, w);
+        }
+        // redirigir referencias a w por rep
+        if(currentNode && set_existElem(currentNode->references, w)) {
+            removeReference(currentNode, w);
+            addReference(currentNode, v);
+        }
+        currentGraph = currentGraph->next;
+    }
+
+    //ahora modificar los CONTRAINT COMPLEX
+    remap_constraints_after_unify(w,v);
+    printf("El nodo %s ya no estara en las constraint, ahora sera: %s \n", w->name, v->name);
+
+    // Eliminar posible autociclo creado (si v apuntaba a w y ahora apunta a si mismo)
+    removeEdgeInNode(v, v);
+    // fusionar info (Pcur/Pold, etc.)
+    mergeNodes(v, w);
+    // eliminar w del grafo
+    removeNode(&g, w);
+
+}
+
+
+void remap_constraints_after_unify(Node *oldw, Node *rep) {
+    // Complex 1: l ⊇ *r
+    for (ListConstraint *c = listComplex1; c; c = constraint_getNext(c)) {
+        // Remapear extremos L/R si apuntaban a w
+        if (constraint_getL(c) == oldw) constraint_setL(c, rep);
+        if (constraint_getR(c) == oldw) constraint_setR(c, rep);
+
+        // Remapear el cache (reemplazar oldw por rep si estuviera)
+        //no es necesario por ahora
+    }
+
+    // Complex 2: *l ⊇ r
+    for (ListConstraint *c = listComplex2; c; c = constraint_getNext(c)) {
+        if (constraint_getL(c) == oldw) constraint_setL(c, rep);
+        if (constraint_getR(c) == oldw) constraint_setR(c, rep);
+
     }
 }
 
@@ -162,42 +259,6 @@ void mergeNodes(Node *v, Node *w) {
     v->pold = mergedOld;
 }
 
-/*
- * unify(g, v, w)
- * ----------------------------------------------------------------------------
- * Colapsa el nodo w dentro del representante v.
- *
- * Que actualiza:
- *   - Aristas entrantes x->w  se reemplazan por x->v.
- *   - Referencias (points-to) hacia w se redirigen a v.
- *   - Se elimina el posible autociclo v->v si aparece.
- *   - Se fusionan Pcur/Pold: v := (v ∪ w) (mergeNodes).
- *   - Se elimina w del grafo.
- */
-
-void unify(Graph* g, Node* v, Node* w){
-    Graph *currentGraph = g;
-    while (currentGraph) {
-        Node *currentNode = currentGraph->node;
-        // Si currentNode tiene una arista hacia w, reemplazarla por una arista hacia v.
-        if(currentNode && set_existElem(currentNode->edges, w)) {
-            addEdgeInNode(currentNode, v);
-            removeEdgeInNode(currentNode, w);
-        }
-        // Si currentNode tiene una referencia (Pcur/Pold) hacia w, reemplazarla por v.
-        if(currentNode && set_existElem(currentNode->references, w)) {
-            removeReference(currentNode, w);
-            addReference(currentNode, v);
-        }
-        currentGraph = currentGraph->next;
-    }
-    // Eliminar posible autociclo creado (si v apuntaba a w y ahora apunta a si mismo)
-    removeEdgeInNode(v, v);
-    // Fusionar las referencias de w en v
-    mergeNodes(v, w);
-    // Finalmente eliminar el nodo w del grafo
-    removeNode(&g, w);
-}
 
 
 // Propaga el conjunto pdif desde v a w
@@ -259,14 +320,15 @@ void perform_Wave_Propagation() {
  *   Devolver un booleano para poder hacer el ciclo en el algorithm 1.
  */
 
-void add_new_edges() {
+int add_new_edges() {
+    int add_edges = 0;
     //Complex 1
     ListConstraint *currentConstraint = listComplex1;
     while (currentConstraint) {
         Node *l             = constraint_getL(currentConstraint);
         Node *r             = constraint_getR(currentConstraint);
-
         Set *pCache         = constraint_getCache(currentConstraint);
+
         //Pnew ← Pcur(r) − Pcache(c)
         Set *pNew           = set_difference(r->references, pCache);
         //Pcache(c) ← Pcache(c) ∪ Pnew
@@ -275,33 +337,35 @@ void add_new_edges() {
         
         // for v ∈ Pnew do …
         Set *pNewIter = pNew; 
-                                // printf("Complex 1: \n");
+                                printf("Complex 1: \n");
         while (pNewIter) {
             /*(v,l) /∈ E */
             Node *v = pNewIter->node;
-                                // printf("Nodo v: %s \n", v->name);
-                                // printf("Nodo l: %s \n", l->name);
-            if(!existEdgeInNode(v, l)) {
+                                printf("Nodo v: %s \n", v->name);
+                                printf("Nodo l: %s \n", l->name);
+            if(v != l && !existEdgeInNode(v, l)) {
                 addEdgeInNode(v,l);
-                                // printf("Agrego la nueva arista\n New PCur sera la union entre: \n Pcur :\n");
-                                // set_print(l->references);
-                                // printf("Pold :\n");
-                                // set_print(v->pold);
+                add_edges = 1;
+                                printf("Agrego la nueva arista\n New PCur sera la union entre: \n Pcur :\n");
+                                set_print(l->references);
+                                printf("Pold :\n");
+                                set_print(v->pold);
                 Set *newPCurL = set_union(l->references, v->pold);
-                                // printf("Nuevo references para %s: \n", l->name);
-                                // set_print(newPCurL);
+                                printf("Nuevo references para %s: \n", l->name);
+                                set_print(newPCurL);
                 node_setReferences(l, newPCurL);
             }
             pNewIter = set_nextElem(pNewIter);
         }
         set_destroy(pNew);
-        set_destroy(pCache);
+        //set_destroy(pCache);
         currentConstraint = constraint_getNext(currentConstraint);
     }
     
     //Complex 2
     currentConstraint = listComplex2;
     while (currentConstraint) {
+             printf("Complex 2: \n");
         Node *l = constraint_getL(currentConstraint);
         Node *r = constraint_getR(currentConstraint);
 
@@ -315,16 +379,26 @@ void add_new_edges() {
         while (pNewIter) {
             /*(r, v) /∈ E  */
             Node *v = pNewIter->node;
-
-            if(!existEdgeInNode(r,v)) {
+                                printf("Nodo v: %s \n", v->name);
+                                printf("Nodo l: %s \n", l->name);
+            if(r != v && !existEdgeInNode(r,v)) {
+                                printf("Agrego la nueva arista\n New PCur sera la union entre: \n Pcur :\n");
+                                set_print(v->references);
+                                printf("Pold :\n");
+                                set_print(r->pold);
                 addEdgeInNode(r,v);
+                add_edges = 1;
                 Set *newPCurV = set_union(v->references, r->pold);
                 node_setReferences(v, newPCurV);
+                                printf("Nuevo references para %s: \n", l->name);
+                                set_print(newPCurV);
             }
             pNewIter = set_nextElem(pNewIter);
         }
         set_destroy(pNew);
-        set_destroy(pCache);
+        //set_destroy(pCache);
         currentConstraint = constraint_getNext(currentConstraint);
+        printf("Esto continua?");
     }
+    return add_edges;
 }

@@ -23,5 +23,6 @@ void visitNode(Node* v, int *I);        //Algorithm 3
 void unify(Graph* g, Node* v, Node* w); //Unifica los nodos para que se vuelvan 1 solo.
 void perform_Wave_Propagation();        //Algorithm 4
 void propagationTo(Node *w, Set *pdif); //Propaga el conjunto de apuntados a un nodo en particular.
-void add_new_edges();                   //Algorithm 5
+int add_new_edges();                    //Algorithm 5
+void remap_constraints_after_unify(Node *oldw, Node *rep);
 #endif
