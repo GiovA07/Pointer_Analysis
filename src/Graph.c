@@ -149,7 +149,6 @@ void printDot(Graph *g, const char* filename) {
     }
     fprintf(file, "digraph{\n\n");
     fprintf(file, "rankdir=TB;\n\n");
-    printf("aca llega");
     generateDot(g, file);
     fprintf(file, "}\n");
     fclose(file);
