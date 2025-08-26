@@ -12,9 +12,12 @@
 #include "../include/Stack.h"
 #include "ListConstraint.h"
 
+/* MACROS */
+#define Pcur(n) ((n)->references)
+#define Pold(n) ((n)->pold)
 
-extern ListConstraint* listComplex1;
-extern ListConstraint* listComplex2;
+extern ListConstraint *listComplex1; // l ⊇ *r
+extern ListConstraint *listComplex2; // *l ⊇ r
 
 void wave_Propagation(Graph *G);        //Algorithm 1
 void collapseSCC(Graph *G);             //Algorithm 2

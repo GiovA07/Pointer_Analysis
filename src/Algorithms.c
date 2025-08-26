@@ -1,7 +1,6 @@
 
 #include "../include/Algorithms.h"
 
-
 // Mapas para D y R
 DMap *D;
 RMap *R;
@@ -23,7 +22,6 @@ int I;
  *   El algoritmo completo se repite hasta que no haya cambios
  *   Por ahora hice solo 1 iteracion (para ver que funciona como el ejemplo del paper)
  */
-
 void wave_Propagation(Graph *G) {
     int result;
     do {
@@ -66,14 +64,14 @@ void collapseSCC(Graph *G) {
     }
     // Segunda fase: Collapse Strongly Connected Components (SCCs)
     // Para cada v con R(v) != v, unify(v, R(v)) -> mover aristas/referencias a representative.
-    for (Graph *curGraph = G; curGraph;) {
+    Graph *next = NULL;
+    for (Graph *curGraph = G; curGraph; curGraph = next) {
         Node *v = curGraph->node;
         Node *r = getRValue(R, v);
-        Graph *next = curGraph->next;  
+        next = curGraph->next;  
         if (r != v) {
             unify(G, r, v);
         }
-        curGraph = next;
     }
 }
 /*
@@ -88,32 +86,30 @@ void collapseSCC(Graph *G) {
  *   - Se fusionan Pcur/Pold: v := (v ∪ w) (mergeNodes).
  *   - Se elimina w del grafo.
  */
-void unify(Graph* g, Node* v, Node* w){
-    Graph *currentGraph = g;
-    if (v == w) return;
-    while (currentGraph) {
-        Node *currentNode = currentGraph->node;
+void unify(Graph* g, Node* target, Node* source){
+    if (target == source) return;
+
+    for(Graph *curGraph = g; curGraph; curGraph = curGraph->next) {
+        Node *curNode = curGraph->node;
         // Si currentNode tiene una arista hacia w, reemplazarla por una arista hacia v.
-        if(currentNode && set_existElem(currentNode->edges, w)) {
-            addEdgeInNode(currentNode, v);
-            removeEdgeInNode(currentNode, w);
+        if(curNode && set_existElem(curNode->edges, source)) {
+            addEdgeInNode(curNode, target);
+            removeEdgeInNode(curNode, source);
         }
         // redirigir referencias a w por rep
-        if(currentNode && set_existElem(currentNode->references, w)) {
-            removeReference(currentNode, w);
-            addReference(currentNode, v);
+        if(curNode && set_existElem(Pcur(curNode), source)) {
+            removeReference(curNode, source);
+            addReference(curNode, target);
         }
-        currentGraph = currentGraph->next;
     }
-
     //ahora modificar los CONTRAINT COMPLEX
-    remap_constraints_after_unify(w,v);
+    remap_constraints_after_unify(source,target);
     // Eliminar posible autociclo creado (si v apuntaba a w y ahora apunta a si mismo)
-    removeEdgeInNode(v, v);
+    removeEdgeInNode(target, target);
     // fusionar info (Pcur/Pold, etc.)
-    mergeNodes(v, w);
+    mergeNodes(target, source);
     // eliminar w del grafo
-    removeNode(&g, w);
+    removeNode(&g, source);
 
 }
 
@@ -134,8 +130,6 @@ void remap_constraints_after_unify(Node *oldw, Node *rep) {
 
     }
 }
-
-
 
 /*
  * Algorithm 3: visitNode
@@ -202,31 +196,28 @@ void visitNode(Node* v, int *I) {
     }
 }
 
-
-
 /*
  * mergeNodes: combina el conjunto de referencias
  * (Pcur/Pold u otros sets relacionados) de w dentro de v.
  * - usamos set_union y reemplazamos v->references por la unión.
  */
-void mergeNodes(Node *v, Node *w) {
-    Set *mergedRefs = set_union(v->references, w->references);
-    Set *mergedOld = set_union(v->pold, w->pold);
-    set_destroy(v->references);
-    set_destroy(w->references);
-    set_destroy(v->pold);
-    set_destroy(w->pold);
-    v->references = mergedRefs;
-    v->pold = mergedOld;
+void mergeNodes(Node *target, Node *source) {
+    Set *mergedRefs = set_union(Pcur(target), Pcur(source));
+    Set *mergedOld = set_union(Pold(target), Pold(source));
+    set_destroy(Pcur(target));
+    set_destroy(Pcur(source));
+    set_destroy(Pold(target));
+    set_destroy(Pold(source));
+    Pcur(target) = mergedRefs;
+    Pold(target) = mergedOld;
 }
-
-
 
 // Propaga el conjunto pdif desde v a w
 void propagationTo(Node *w, Set *pdif) {
-    Set *oldRefs = w->references;
-    w->references = set_union(oldRefs, pdif);
-    w->pold = set_clone(w->references);
+    Set *oldRefs = Pcur(w);
+    Pcur(w) = set_union(oldRefs, pdif);
+    // REVIEW:	ver si es correcto clonar el pold aca
+    Pold(w) = set_clone(Pcur(w));
     set_destroy(oldRefs);
 }
 
@@ -242,10 +233,10 @@ void perform_Wave_Propagation() {
         Node *v = top(T);
         pop(T);
         //Pdif ← Pcur(v) − Pold(v)
-        Set *pdif = set_difference(v->references, v->pold);
+        Set *pdif = set_difference(Pcur(v), Pold(v));
         //Pold(v) ← Pcur(v)
-        set_destroy(v->pold);
-        v->pold = set_clone(v->references);
+        set_destroy(Pold(v));
+        Pold(v) = set_clone(Pcur(v));
         //por cada w tal que (v,w) ∈ E, Pcur(w) ← Pcur(w) ∪ Pdif
         for (Set *edge = v->edges; edge; edge = edge->next) {
             Node* w = edge->node;
@@ -284,7 +275,7 @@ int add_new_edges() {
         Set *pCache         = constraint_getCache(currentConstraint);
 
         //Pnew ← Pcur(r) − Pcache(c)
-        Set *pNew           = set_difference(r->references, pCache);
+        Set *pNew           = set_difference(Pcur(r), pCache);
         //Pcache(c) ← Pcache(c) ∪ Pnew
         Set *unionCacheNew  = set_union(pCache, pNew);
         constraint_setCache(currentConstraint,unionCacheNew);
@@ -297,7 +288,7 @@ int add_new_edges() {
             if(v != l && !existEdgeInNode(v, l)) {
                 addEdgeInNode(v,l);
                 add_edges = 1;
-                Set *newPCurL = set_union(l->references, v->pold);
+                Set *newPCurL = set_union(Pcur(l), Pold(v));
                 node_setReferences(l, newPCurL);
             }
             pNewIter = set_nextElem(pNewIter);
@@ -314,7 +305,7 @@ int add_new_edges() {
         Node *r = constraint_getR(currentConstraint);
 
         Set *pCache = constraint_getCache(currentConstraint);
-        Set *pNew = set_difference(l->references, pCache);
+        Set *pNew = set_difference(Pcur(l), pCache);
         
         Set *unionCacheNew = set_union(pCache, pNew);
         constraint_setCache(currentConstraint,unionCacheNew);
@@ -326,7 +317,7 @@ int add_new_edges() {
             if(r != v && !existEdgeInNode(r,v)) {
                 addEdgeInNode(r,v);
                 add_edges = 1;
-                Set *newPCurV = set_union(v->references, r->pold);
+                Set *newPCurV = set_union(Pcur(v), Pold(r));
                 node_setReferences(v, newPCurV);
             }
             pNewIter = set_nextElem(pNewIter);
