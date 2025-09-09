@@ -3,70 +3,73 @@
 
 DMap* initDMap(Graph* graph) {
     DMap *head = NULL;
-    Graph *currentGraph = graph;
-    while (currentGraph != NULL) {
-        DMap *elem = (DMap *)malloc(sizeof(DMap));
-        elem->node = currentGraph->node;
-        elem->value = UNVISITED;
-        elem->next = head;
-        head = elem;
-        currentGraph = currentGraph->next;
+    for (Graph *g = graph; g; g = g->next) {
+        DMap *e = (DMap*)malloc(sizeof(DMap));
+        e->node  = g->node;
+        e->value = UNVISITED;
+        e->next  = head;
+        head = e;
     }
     return head;
 }
 
 RMap* initRMap(Graph* graph) {
     RMap *head = NULL;
-    Graph *currentGraph = graph;
-    while (currentGraph != NULL) {
-        RMap *elem = (RMap *)malloc(sizeof(RMap));
-        elem->node = currentGraph->node;
-        elem->representative = currentGraph->node;          //Inicialmente, cada nodo es su propio representante.
+    for (Graph *g = graph; g; g = g->next) {
+        RMap *elem = (RMap*)malloc(sizeof(RMap));
+        elem->node = g->node;
+        elem->representative = g->node;   // cada nodo es su propio rep
         elem->next = head;
         head = elem;
-        currentGraph = currentGraph->next;
     }
     return head;
 }
 
+void destroyDMap(DMap* d) {
+    while (d) { 
+        DMap* nxt = d->next; 
+        free(d); 
+        d = nxt; 
+    }
+}
+
+void destroyRMap(RMap* r) {
+    while (r) { 
+        RMap* nxt = r->next;
+        free(r);
+        r = nxt; 
+    }
+}
 
 int getDValue(DMap* dMap, Node* node) {
-    while (dMap) {
-        if (dMap->node == node) {
-            return dMap->value;
-        }
-        dMap = dMap->next;
-    }
+    for (DMap* d = dMap; d; d = d->next)
+        if (d->node == node) return d->value;
     return UNVISITED; // Si no se encuentra, retorna ⊥
 }
 
 void setDValue(DMap* dMap, Node* node, int value) {
-    while (dMap) {
-        if (dMap->node == node) {
-            dMap->value = value;
+    for (DMap* d = dMap; d; d = d->next) {
+        if (d->node == node) {
+            d->value = value;
             return;
         }
-        dMap = dMap->next;
     }
 }
 
 Node* getRValue(RMap* rMap, Node* node) {
-    while (rMap) {
-        if (rMap->node == node) {
-            return rMap->representative;
-        }
-        rMap = rMap->next;
-    }
+    for (RMap* r = rMap; r; r = r->next)
+        if (r->node == node) 
+            return r->representative;
     return NULL;
 }
 
 
+
 void setRValue(RMap* rMap, Node* node, Node* representative) {
-    while (rMap) {
-        if (rMap->node == node) {
-            rMap->representative = representative;
+    for (RMap* r = rMap; r; r = r->next) {
+        if (r->node == node) {
+            r->representative = representative;
             return;
         }
-        rMap = rMap->next;
     }
 }

@@ -28,4 +28,3 @@ void generateDot(Graph *g, FILE* file);
 void printDot(Graph *g, const char* filename);
 
 #endif // GRAPH_H
-
