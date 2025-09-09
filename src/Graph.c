@@ -6,13 +6,9 @@
 
 // Busca un nodo en el grafo y devuelve su puntero, o NULL si no existe.
 Graph* findNode(Graph *g, char *name) {
-    while (g != NULL) {
-        if (strcmp(g->node->name, name) == 0) {
-            return g;
-        }
-        g = g->next;
-    }
-    return NULL; // No encontrado
+    for (; g; g = g->next)
+        if (strcmp(g->node->name, name) == 0) return g;
+    return NULL;
 }
 
 Graph* nextNode(Graph *g){
@@ -22,9 +18,8 @@ Graph* nextNode(Graph *g){
 
 // Agrega un nodo al grafo
 void addNode(Graph **g, Node *node) {
-    
+    if (!g || !node) return;
     if(findNode(*g, node->name)) return;
-
     Graph *nuevo = (Graph *)malloc(sizeof(Graph));
     if (!nuevo) {
         printf("Error al asignar memoria para el nodo.\n");
@@ -37,25 +32,20 @@ void addNode(Graph **g, Node *node) {
 
 void removeNode(Graph **g, Node *node) {
     if (!g || !*g || !node) return;
-
     Graph *current = *g;
     Graph *prev = NULL;
-
-    while (current != NULL) {
+    while (current) {
         if (current->node == node) {
             // Eliminar el nodo de la lista
-            if (prev == NULL) {
+            if (prev == NULL)
                 // El nodo está al principio de la lista
                 *g = current->next;
-            } else {
+            else
                 prev->next = current->next;
-            }
-
             // Liberar la memoria del nodo
             free(current);
             return;
         }
-
         prev = current;
         current = current->next;
     }
@@ -67,7 +57,6 @@ void addEdge(Graph *from, Node* to) {
         printf("Error: Nodo de origen o destino no válido.\n");
         return;
     }
-
     addEdgeInNode(from->node, to);
 }
 
@@ -76,7 +65,6 @@ void removeEdge(Graph *from, Node* to){
         printf("Error: Nodo de origen o destino no válido.\n");
         return;
     }
-
     removeEdgeInNode(from->node, to);
 }
 
@@ -87,7 +75,7 @@ void printGraph(Graph *g) {
         Set *ref = g->node->references;
         while (ref)
         {
-            printf(" - %s", ref->node->name);
+            printf(" - %s\n", ref->node->name);
             ref = ref->next;
         }
         printf("\n");        
@@ -143,13 +131,11 @@ void printDot(Graph *g, const char* filename) {
         exit(1);
     }
     FILE* file = fopen(filename, "w");
-    if (file == NULL) {
-        fprintf(stderr, "Error al abrir el archivo %s\n", filename);
-        return;
-    }
-    fprintf(file, "digraph{\n\n");
-    fprintf(file, "rankdir=TB;\n\n");
+    if (!file) { fprintf(stderr, "Error al abrir %s\n", filename); return; }
+    fprintf(file, "digraph{\nrankdir=TB;\n");
     generateDot(g, file);
     fprintf(file, "}\n");
     fclose(file);
 }
+
+
