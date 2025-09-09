@@ -1081,7 +1081,7 @@ yyreduce:
   case 2: /* program: statements  */
 #line 33 "sintaxis.y"
                                    { 
-                                    wave_Propagation(graph);
+                                    wave_Propagation(&graph);
                                     printDot(graph, "../output/grafo.dot");
                                    }
 #line 1088 "sintaxis.tab.c"

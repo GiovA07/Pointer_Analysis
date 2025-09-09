@@ -17,19 +17,16 @@ int I;
  *   1) Colapsa ciclos (SCC) => el grafo se vuelve aciclico.
  *   2) Propaga puntos-a en orden topológico (usando T), SOLO las diferencias.
  *   3) Evalua constraints complejas y agrega aristas nuevas si aparecen.
- *
- * Nota:
- *   El algoritmo completo se repite hasta que no haya cambios
- *   Por ahora hice solo 1 iteracion (para ver que funciona como el ejemplo del paper)
  */
-void wave_Propagation(Graph *G) {
-    int result;
+void wave_Propagation(Graph **G) {
+    if (!G || !*G) { printf("Grafo vacío"); return; }
+    bool changed;
     do {
-        result = 0;
+        changed = false;
         collapseSCC(G);
         perform_Wave_Propagation();
-        result = add_new_edges();
-    } while (result == 1);
+        changed = add_new_edges();
+    } while (changed == true);
     printf("Termino \n");
 }
 
@@ -42,22 +39,17 @@ void wave_Propagation(Graph *G) {
  *   - Inicializa D,R,S,T,C; reinicia I.
  *   - Recorre todos los nodos no visitados con visitNode.
  *   - Unifica (unify) todo v cuyo R(v) != v con su representante R(v).
- *
- * Al terminar:
- *   - G queda aciclico.
- *   - T contiene (en su tope) nodos sin predecesores; al hacer pop iteramos
- *     en orden topológico de representantes.
  */
-void collapseSCC(Graph *G) {
-
-    D = initDMap(G);        // todos D(v) = UNVISITED (⊥)
-    R = initRMap(G);        // R(v) = v inicialmente
+void collapseSCC(Graph **G) {
+    D = initDMap(*G);        // todos D(v) = UNVISITED (⊥)
+    R = initRMap(*G);        // R(v) = v inicialmente
     S = createStack();
     T = createStack();
     C = createSet();
     I = 0;
+
     // Primera fase: Visitar nodos no visitados
-    for (Graph *curGraph = G; curGraph; curGraph = curGraph->next) {
+    for (Graph *curGraph = *G; curGraph; curGraph = curGraph->next) {
         if (getDValue(D, curGraph->node) == UNVISITED) {
             visitNode(curGraph->node, &I);
         }
@@ -65,7 +57,7 @@ void collapseSCC(Graph *G) {
     // Segunda fase: Collapse Strongly Connected Components (SCCs)
     // Para cada v con R(v) != v, unify(v, R(v)) -> mover aristas/referencias a representative.
     Graph *next = NULL;
-    for (Graph *curGraph = G; curGraph; curGraph = next) {
+    for (Graph *curGraph = *G; curGraph; curGraph = next) {
         Node *v = curGraph->node;
         Node *r = getRValue(R, v);
         next = curGraph->next;  
@@ -86,10 +78,10 @@ void collapseSCC(Graph *G) {
  *   - Se fusionan Pcur/Pold: v := (v ∪ w) (mergeNodes).
  *   - Se elimina w del grafo.
  */
-void unify(Graph* g, Node* target, Node* source){
+void unify(Graph **G, Node *target, Node *source) {
     if (target == source) return;
 
-    for(Graph *curGraph = g; curGraph; curGraph = curGraph->next) {
+    for(Graph *curGraph = *G; curGraph; curGraph = curGraph->next) {
         Node *curNode = curGraph->node;
         // Si currentNode tiene una arista hacia w, reemplazarla por una arista hacia v.
         if(curNode && set_existElem(curNode->edges, source)) {
@@ -109,7 +101,7 @@ void unify(Graph* g, Node* target, Node* source){
     // fusionar info (Pcur/Pold, etc.)
     mergeNodes(target, source);
     // eliminar w del grafo
-    removeNode(&g, source);
+    removeNode(G, source);
 
 }
 
@@ -265,8 +257,8 @@ void perform_Wave_Propagation() {
  *   Devolver un booleano para poder hacer el ciclo en el algorithm 1.
  */
 
-int add_new_edges() {
-    int add_edges = 0;
+bool add_new_edges() {
+    bool add_edges = 0;
     //Complex 1
     ListConstraint *currentConstraint = listComplex1;
     while (currentConstraint) {
@@ -287,7 +279,7 @@ int add_new_edges() {
             Node *v = pNewIter->node;
             if(v != l && !existEdgeInNode(v, l)) {
                 addEdgeInNode(v,l);
-                add_edges = 1;
+                add_edges = true;
                 Set *newPCurL = set_union(Pcur(l), Pold(v));
                 node_setReferences(l, newPCurL);
             }
@@ -316,7 +308,7 @@ int add_new_edges() {
             Node *v = pNewIter->node;
             if(r != v && !existEdgeInNode(r,v)) {
                 addEdgeInNode(r,v);
-                add_edges = 1;
+                add_edges = true;
                 Set *newPCurV = set_union(Pcur(v), Pold(r));
                 node_setReferences(v, newPCurV);
             }

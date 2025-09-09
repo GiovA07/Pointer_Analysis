@@ -4,23 +4,20 @@ Set* createSet(){
     return NULL;
 }
 
-void set_addElem(Set **set, Node *node) {
-    if(set_existElem(*set, node)) return ;
+bool set_existElem(Set *set, Node *node) {
+    for (Set *cur = set; cur; cur = cur->next)
+        if (cur->node == node) return true;
+    return false;
+}
+
+bool set_addElem(Set **set, Node *node) {
+    if(set_existElem(*set, node)) return false;
     
     Set *newElem = (Set*)malloc(sizeof(Set));
     newElem->node = node;
     newElem->next = *set;
     *set = newElem;
-}
-
-int set_existElem(Set *set, Node *node) {
-    Set* currentElem = set;
-    while (currentElem != NULL)
-    {
-        if(currentElem->node == node) return 1;
-        currentElem = currentElem->next;
-    }
-    return 0;
+    return true;
 }
 
 void set_deleteElem(Set **set, Node *node) {
@@ -28,7 +25,6 @@ void set_deleteElem(Set **set, Node *node) {
 
     Set *prev = NULL;
     Set* currentElem = *set;
-
     while (currentElem != NULL)
     {
         if(currentElem->node == node) {
@@ -37,32 +33,23 @@ void set_deleteElem(Set **set, Node *node) {
             else
                 prev->next = currentElem->next;
         }
-
         prev = currentElem;
         currentElem = currentElem->next;
     }
-
-
 }
 
-Set* set_nextElem(Set *set){
-    if (!set)
-        return NULL;
-    return set->next;
+Set* set_nextElem(Set *set) {
+    return set ? set->next : NULL;
 }
 
 Set* set_difference(Set *current, Set *old) {
     Set *result = createSet();
-
-    while(current != NULL) {
-        if(!set_existElem(old, current->node)) {
-            set_addElem(&result, current->node);
-        }
-        current = set_nextElem(current);
+    for (Set *c = current; c; c = c->next) {
+        if (!set_existElem(old, c->node))
+            set_addElem(&result, c->node);
     }
     return result;
 }
-
 
 Set* set_union(Set *set1, Set *set2) {
     // Resultado empieza vacio
@@ -70,45 +57,34 @@ Set* set_union(Set *set1, Set *set2) {
     Set *cur;
 
     // agregamos todos los elementos de set1 y set2
-    cur = set1;
-    while (cur != NULL) {
-        set_addElem(&result, cur->node);
-        cur = cur->next;
-    }
+    for (Set *c = set1; c; c = c->next)
+        set_addElem(&result, c->node);
 
-    cur = set2;
-    while (cur != NULL) {
-        set_addElem(&result, cur->node);
-        cur = cur->next;
-    }
+    for (Set *c = set2; c; c = c->next)
+        set_addElem(&result, c->node);
 
     return result;
 }
 
 Set* set_clone(Set *src) {
     Set *clone = NULL;
-    Set *cur = src;
-    while (cur) {
-        // set_addElem ya comprueba duplicados, pero como clone empieza NULL
-        set_addElem(&clone, cur->node);
-        cur = cur->next;
-    }
+    for (Set *c = src; c; c = c->next)
+        set_addElem(&clone, c->node);
     return clone;
 }
 
-
 void set_destroy(Set *s) {
-    Set *cur = s;
-    while (cur) {
-        Set *next = cur->next;
-        free(cur);
-        cur = next;
+    while (s) {
+        Set *next = s->next;
+        free(s);
+        s = next;
     }
 }
 
+bool set_empty(Set *s) { return s == NULL; }
+
+
 void set_print(Set *set) {
-    while (set) {
+    for (; set; set = set->next)
         printf("- %s\n", set->node->name);
-        set = set->next;
-    }
 }

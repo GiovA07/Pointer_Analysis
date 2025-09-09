@@ -31,7 +31,7 @@ ListConstraint* listComplex2;
 %%
 
 program: statements                { 
-                                    wave_Propagation(graph);
+                                    wave_Propagation(&graph);
                                     printDot(graph, "../output/grafo.dot");
                                    }
 

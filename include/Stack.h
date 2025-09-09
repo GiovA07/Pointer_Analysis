@@ -19,9 +19,10 @@ typedef struct Stack {
 
 // Funciones de la pila
 Stack* createStack();
-void push(Stack *stack, Node *node);
+bool push(Stack *stack, Node *node);
 void pop(Stack *stack);
 Node* top(Stack *stack);
-int isEmpty(Stack *stack);
+bool isEmpty(Stack *stack);
+void destroyStack(Stack *stack);
 
 #endif // STACK_H
