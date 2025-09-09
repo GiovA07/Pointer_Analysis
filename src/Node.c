@@ -7,14 +7,10 @@ Node* createNode(char *name) {
         fprintf(stderr, "Error: No se pudo asignar memoria para el nodo.\n");
         exit(EXIT_FAILURE);
     }
-    newNode->name = strdup(name);  // Asigna memoria y copia el string
-
-    for (int i = 0; i < MAX_NODES; i++) {
-        newNode->references = createSet();
-        newNode->edges = createSet();
-        newNode->pold = createSet();
-    }
-
+    newNode->name       = strdup(name);   // copia el string (necesita <string.h>)
+    newNode->references = createSet();    // Pcur
+    newNode->edges      = createSet();    // adyacencia
+    newNode->pold       = createSet();    // Pold
     return newNode;
 }
 
@@ -24,19 +20,13 @@ void node_setReferences(Node *node, Set *src) {
     set_destroy(oldSet);
 }
 
-// Agrega una referencia a la lista de adyacencia
+/* Agrega una referencia (points-to) si no existe */
 void addReference(Node *node, Node *ref) {
     // Verificar si ya existe
-    if(set_existElem(node->references, ref))
-        return ;
-
-    set_addElem(&node->references, ref);
+    set_addElem(&node->references, ref); // set_addElem ya evita duplicados
 }
 
 void removeReference(Node *node, Node *ref){
-    if(!set_existElem(node->references, ref))
-        return ;
-    
     set_deleteElem(&node->references, ref);
 }
 
@@ -55,20 +45,14 @@ void removeEdgeInNode(Node *node, Node *edge) {
 }
 
 int existEdgeInNode(Node *node, Node *ref) {
-    Set *edge = node->edges;
-    while (edge) {
-        if(edge->node = ref) return 1;
-        set_nextElem(edge);
-    }
-    return 0;
+    return set_existElem(node->edges, ref) ? 1 : 0;
 }
-
 
 // Lista de los nodos a los que apunta.
 void printReferences(Node *node) {
     printf("Nodo %s tiene las siguientes referencias:\n", node->name);
     Set *ref = node->references;
-    while (ref != NULL) {
+    while (ref) {
         printf("- %s\n", ref->node->name);
         ref = ref->next;
     }
@@ -78,7 +62,7 @@ void printReferences(Node *node) {
 void printEdges(Node *node) {
     printf("Nodo %s tiene las siguientes referencias:\n", node->name);
     Set *edge = node->edges;
-    while (edge != NULL) {
+    while (edge) {
         printf("- %s\n", edge->node->name);
         edge = edge->next;
     }
