@@ -1,0 +1,38 @@
+** Cosas a Considerar **
+ 
+ 1- Deberia revisar bien cuando realizar los free, por ahi debo estar dejando algunas cosas en memoria que nunca libere.
+ 2- 
+
+** Funciones que me podrian servir **
+
+void set_union_into(Set **dst, const Set *src) {
+    if (!dst) return;
+    for (const Set *c = src; c; c = c->next)
+        set_addElem(dst, c->node);
+}
+- Me serviria en los algoritmos donde debo realizar la union por ejemplo:
+  en propagationTo, mergeNodes ya que dejo de crear sets intermedios 
+  que despues hay que liberar.
+  Osea: 
+  // propagationTo:
+    set_union_into(&Pcur(w), pdif);
+  // mergeNodes:
+    set_union_into(&Pcur(target), Pcur(source));
+    set_union_into(&Pold(target), Pold(source));
+
+
+
+char *str_concat(const char *a, const char *b) {
+    size_t la = strlen(a);
+    size_t lb = strlen(b);
+    char *out = (char *)malloc(la + lb + 1);  // +1 para el '\0'
+    if (!out) return NULL;
+    memcpy(out, a, la);
+    memcpy(out + la, b, lb);
+    out[la + lb] = '\0';
+    return out;
+}
+
+
+- Me serviria para poder hacer la concatenacion entre los nombres de los nodos que se unifican.
+    - Por ejemplo: Si C y B se unifican pasaria a llamarse el nodo CB.

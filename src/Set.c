@@ -25,8 +25,7 @@ void set_deleteElem(Set **set, Node *node) {
 
     Set *prev = NULL;
     Set* currentElem = *set;
-    while (currentElem != NULL)
-    {
+    while (currentElem) {
         if(currentElem->node == node) {
             if (prev == NULL)
                 *set = currentElem->next;

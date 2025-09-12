@@ -28,4 +28,7 @@ void perform_Wave_Propagation();                        //Algorithm 4
 void propagationTo(Node *w, Set *pdif);                 //Propaga el conjunto de apuntados a un nodo en particular.
 bool add_new_edges();                                   //Algorithm 5
 void remap_constraints_after_unify(Node *oldw, Node *rep);
+
+//Helper
+char *str_concat(const char *a, const char *b);
 #endif

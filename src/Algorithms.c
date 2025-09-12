@@ -80,6 +80,7 @@ void collapseSCC(Graph **G) {
  */
 void unify(Graph **G, Node *target, Node *source) {
     if (target == source) return;
+    char *merged_name = str_concat(target->name, source->name);
 
     for(Graph *curGraph = *G; curGraph; curGraph = curGraph->next) {
         Node *curNode = curGraph->node;
@@ -94,33 +95,28 @@ void unify(Graph **G, Node *target, Node *source) {
             addReference(curNode, target);
         }
     }
-    //ahora modificar los CONTRAINT COMPLEX
+
+    // 2) Remapear constraints complejas (L/R y cache si hace falta)
     remap_constraints_after_unify(source,target);
-    // Eliminar posible autociclo creado (si v apuntaba a w y ahora apunta a si mismo)
+    //3) Eliminar posible autociclo generado
     removeEdgeInNode(target, target);
-    // fusionar info (Pcur/Pold, etc.)
+    // 4) Fusionar info (Pcur/Pold, etc.)
     mergeNodes(target, source);
+
+    // — renombrar el representante —
+    free(target->name);
+    target->name = merged_name;
+
     // eliminar w del grafo
     removeNode(G, source);
 
 }
 
-
 void remap_constraints_after_unify(Node *oldw, Node *rep) {
     // Complex 1: l ⊇ *r
-    for (ListConstraint *c = listComplex1; c; c = constraint_getNext(c)) {
-        // Remapear extremos L/R si apuntaban a w
-        if (constraint_getL(c) == oldw) constraint_setL(c, rep);
-        if (constraint_getR(c) == oldw) constraint_setR(c, rep);
-        // Remapear el cache (reemplazar oldw por rep si estuviera)
-        //no es necesario por ahora
-    }
+    constraints_remap_nodes(listComplex1, oldw, rep);
     // Complex 2: *l ⊇ r
-    for (ListConstraint *c = listComplex2; c; c = constraint_getNext(c)) {
-        if (constraint_getL(c) == oldw) constraint_setL(c, rep);
-        if (constraint_getR(c) == oldw) constraint_setR(c, rep);
-
-    }
+    constraints_remap_nodes(listComplex2, oldw, rep);
 }
 
 /*
@@ -319,4 +315,16 @@ bool add_new_edges() {
         currentConstraint = constraint_getNext(currentConstraint);
     }
     return add_edges;
+}
+
+
+char *str_concat(const char *a, const char *b) {
+    size_t la = strlen(a);
+    size_t lb = strlen(b);
+    char *out = (char *)malloc(la + lb + 1);  // +1 para el '\0'
+    if (!out) return NULL;
+    memcpy(out, a, la);
+    memcpy(out + la, b, lb);
+    out[la + lb] = '\0';
+    return out;
 }
