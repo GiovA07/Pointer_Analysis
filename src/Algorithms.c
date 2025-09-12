@@ -60,7 +60,7 @@ void collapseSCC(Graph **G) {
     for (Graph *curGraph = *G; curGraph; curGraph = next) {
         Node *v = curGraph->node;
         Node *r = getRValue(R, v);
-        next = curGraph->next;  
+        next = curGraph->next;  //Este lo pongo aca porque puede borrarse el nodo al unificar y eso me arrina el algoritmo
         if (r != v) {
             unify(G, r, v);
         }
@@ -230,7 +230,6 @@ void perform_Wave_Propagation() {
             Node* w = edge->node;
             propagationTo(w, pdif);
         }
-
         set_destroy(pdif);
     }
 }
@@ -256,63 +255,59 @@ void perform_Wave_Propagation() {
 bool add_new_edges() {
     bool add_edges = 0;
     //Complex 1
-    ListConstraint *currentConstraint = listComplex1;
-    while (currentConstraint) {
-        Node *l             = constraint_getL(currentConstraint);
-        Node *r             = constraint_getR(currentConstraint);
-        Set *pCache         = constraint_getCache(currentConstraint);
+    ListConstraint *curConstraint = listComplex1;
+    while (curConstraint) {
+        Node *l             = constraint_getL(curConstraint);
+        Node *r             = constraint_getR(curConstraint);
+        Set *pCache         = constraint_getCache(curConstraint);
 
         //Pnew ← Pcur(r) − Pcache(c)
         Set *pNew           = set_difference(Pcur(r), pCache);
         //Pcache(c) ← Pcache(c) ∪ Pnew
-        Set *unionCacheNew  = set_union(pCache, pNew);
-        constraint_setCache(currentConstraint,unionCacheNew);
+        Set *newCache  = set_union(pCache, pNew);
+        constraint_setCache(curConstraint,newCache);
         
         // for v ∈ Pnew do …
-        Set *pNewIter = pNew; 
-        while (pNewIter) {
+        for (Set* curSet = pNew; curSet ; curSet = curSet->next) {
             /*(v,l) /∈ E */
-            Node *v = pNewIter->node;
+            Node *v = curSet->node;
             if(v != l && !existEdgeInNode(v, l)) {
                 addEdgeInNode(v,l);
                 add_edges = true;
                 Set *newPCurL = set_union(Pcur(l), Pold(v));
                 node_setReferences(l, newPCurL);
             }
-            pNewIter = set_nextElem(pNewIter);
         }
         set_destroy(pNew);
         //set_destroy(pCache);
-        currentConstraint = constraint_getNext(currentConstraint);
+        curConstraint = constraint_getNext(curConstraint);
     }
     
     //Complex 2
-    currentConstraint = listComplex2;
-    while (currentConstraint) {
-        Node *l = constraint_getL(currentConstraint);
-        Node *r = constraint_getR(currentConstraint);
+    curConstraint = listComplex2;
+    while (curConstraint) {
+        Node *l = constraint_getL(curConstraint);
+        Node *r = constraint_getR(curConstraint);
 
-        Set *pCache = constraint_getCache(currentConstraint);
+        Set *pCache = constraint_getCache(curConstraint);
         Set *pNew = set_difference(Pcur(l), pCache);
         
         Set *unionCacheNew = set_union(pCache, pNew);
-        constraint_setCache(currentConstraint,unionCacheNew);
+        constraint_setCache(curConstraint,unionCacheNew);
 
-        Set *pNewIter = pNew; 
-        while (pNewIter) {
+        for (Set *curSet = pNew; curSet; curSet = curSet->next) {
             /*(r, v) /∈ E  */
-            Node *v = pNewIter->node;
+            Node *v = curSet->node;
             if(r != v && !existEdgeInNode(r,v)) {
                 addEdgeInNode(r,v);
                 add_edges = true;
                 Set *newPCurV = set_union(Pcur(v), Pold(r));
                 node_setReferences(v, newPCurV);
             }
-            pNewIter = set_nextElem(pNewIter);
         }
         set_destroy(pNew);
         //set_destroy(pCache);  ///VER QUE HACER CON ESTO (porque causa error)
-        currentConstraint = constraint_getNext(currentConstraint);
+        curConstraint = constraint_getNext(curConstraint);
     }
     return add_edges;
 }
