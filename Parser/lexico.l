@@ -12,11 +12,16 @@ extern YYSTYPE yylval;
 %option noyywrap
 %option yylineno
 
-letra [a-zA-Z]      
+letra [a-zA-Z_]   
 digito [0-9]   
 
 
 %%
+
+
+"if"            { return IF; }
+"else"          { return ELSE; }
+"while"         { return WHILE; }
 
 {letra}({letra}|{digito})*  { 
     yylval.string = strdup(yytext); 
@@ -28,7 +33,21 @@ digito [0-9]
 "*"  { return DEREF; }
 ";"  { return ';'; }
 
+
+"{"                         { return TLLAVE_OP; }
+"}"                         { return TLLAVE_CL; }
+"("                         { return TPAR_OP; }
+")"                         { return TPAR_CL; }
+
+
+"//".*						/** Comentario de linea **/
+"/*"([^*]|[*][^/])*"*/"  	/**  Comentario bloque  **/
+
+[#\$]                       { return -1; }
+
+
 .|\n                          ; /* ignore all the rest */
+[ \t\r\n]+                  ; /* ignorar espacios/blancos */
 
 
 %%

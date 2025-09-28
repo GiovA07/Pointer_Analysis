@@ -25,7 +25,18 @@ ListConstraint* listComplex2;
 
 %token <string> ID
 %token ASIGNACION REF DEREF
-%type <graph> statements statement
+%type <graph> statements statement block
+/* es un skip muy simple para ignorar lo que haya entre parentesis en una condicion */
+%type <graph> cond_skip
+
+/* Tokens */
+%token TLLAVE_OP TLLAVE_CL
+%token TPAR_OP TPAR_CL
+%token IF ELSE WHILE RETURN
+
+
+
+
 
 
 %%
@@ -110,6 +121,43 @@ statement:
                                 printf("Complex 2 Constraint: *%s ⊇ %s\n", $2, $4);
                                 free($2); free($4);
                              }
+
+    | IF TPAR_OP cond_skip TPAR_CL block
+      {
+        /* para reconocer la estructura */
+      }
+    | IF TPAR_OP cond_skip TPAR_CL block ELSE block
+      {
+        /* para reconocer la estructura */
+      }
+
+    | WHILE TPAR_OP cond_skip TPAR_CL block
+      {
+        /* para reconocer la estructura */
+      }
+
+    /* Bloque (por si quiero anidar) */
+    | block
+      { 
+        /* sin accion */ 
+      }
+    ;
+
+
+
+block: 
+    TLLAVE_OP statements TLLAVE_CL { $$ = graph; }
+    | TLLAVE_OP TLLAVE_CL { $$ = graph; }
+    ;
+
+
+/* Mejorar esta parte con IDs, *, &, =, !, <, >, etc. */
+cond_skip
+    : /* empty */                         { $$ = graph; }
+    | cond_skip ID                        { $$ = graph; free($2); }
+    | cond_skip DEREF                     { $$ = graph; }
+    | cond_skip REF                       { $$ = graph; }
+    | cond_skip ASIGNACION                { $$ = graph; }
     ;
 
 %%
