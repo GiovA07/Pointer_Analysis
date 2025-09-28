@@ -58,3 +58,10 @@ dkms.conf
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/
+
+#Editors
+.vscode/
+
+# Files
+Parser/*.c
+Parser/*.h
