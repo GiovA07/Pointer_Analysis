@@ -52,36 +52,13 @@ statements: statements statement
 
 statement: 
     ID ASIGNACION REF ID ';' {
-                                Node *n1 = createNode($1);
-                                Node *n2 = createNode($4);
-
-                                addNode(&graph, n1);
-                                addNode(&graph, n2);
-
-                                Graph* aux = findNode(graph, n1->name);
-                                Graph* aux2 = findNode(graph, n2->name);
-                                
-                                n1 = aux->node;
-                                n2 = aux2->node;
-                                constraintBase(n1, n2);
-
-                                $$ = graph;
+                                constraitBaseAlg(&graph, $1, $4);
                                 printf("Base Constraint: %s ⊇ {%s}\n", $1, $4);
                                 free($1); free($4);
+                                $$ = graph;
                              }
     | ID ASIGNACION ID ';'   {
-                                Node *n1 = createNode($1);
-                                Node *n2 = createNode($3);
-
-                                addNode(&graph, n1);
-                                addNode(&graph, n2);
-
-                                Graph* aux = findNode(graph, n1->name);
-                                Graph* aux2 = findNode(graph, n2->name);
-
-                                n1 = aux->node;
-                                constraintSimple(aux2, n1);
-
+                                constraintSimpleAlg(&graph, $1, $3);
                                 $$ = graph;
 
                                 printf("Simple Constraint: %s ⊇ %s\n", $1, $3);

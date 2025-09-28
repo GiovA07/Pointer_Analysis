@@ -26,6 +26,16 @@ void addReference(Node *node, Node *ref) {
     set_addElem(&node->references, ref); // set_addElem ya evita duplicados
 }
 
+void clean_reference(Node *node) {
+    Set *ref = node->references;
+    while(ref) {
+        Set *aux = ref;
+        ref = ref->next;
+        free(aux);
+    }
+    node->references = NULL;
+}
+
 void removeReference(Node *node, Node *ref){
     set_deleteElem(&node->references, ref);
 }

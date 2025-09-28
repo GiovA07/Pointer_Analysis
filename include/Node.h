@@ -24,7 +24,7 @@ void node_setReferences(Node *node, Set *src);
 Node* createNode(char *name);
 void addReference(Node *node, Node *ref);
 void removeReference(Node *node, Node *ref);
-
+void clean_reference(Node *node);
 void addEdgeInNode(Node *node, Node *edge);
 void removeEdgeInNode(Node *node, Node *ref);
 int existEdgeInNode(Node *node, Node *ref);

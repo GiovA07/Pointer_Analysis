@@ -1,40 +1,12 @@
-H = &C;
-E = &G;
-B = C;
-H = &G;
-H = A;
-C = B;
-A = &E;
-  F = D;
-  B = A;
-  D = *H;
-
-// Final
-*E = F;
-F = &A;
-
-
-// Pre
-H = &C;
-E = &G;
-
-if (cond1) {
-  B = C;
-  H = &G;
-} else {
-  H = A;
-  C = B;
-}
-
-// Sigue
-A = &E;
-
-while (cond2) {
-  F = D;
-  B = A;
-  D = *H;
-}
-
-// Final
-*E = F;
-F = &A;
+H=&C;
+E=&G;
+B=C;
+H=&G;
+H=A;
+C=B; 
+A=&E; 
+F=D; 
+B=A; 
+D= *H; 
+*E=F; 
+F=&A;

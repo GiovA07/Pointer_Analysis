@@ -9,9 +9,8 @@
 #define ADM_H
 
 // Funciones para los constraints
-void constraintBase(Node* nodo, Node* ref);
-void constraintSimple(Graph *g, Node* toEdge);
-
+void constraitBaseAlg(Graph **g, char *nameNode1, char *nameNode2);
+void constraintSimpleAlg(Graph **g, char *nameNode1, char *nameNode2);
 
 // int constraintComplex1(Graph *g, Node *node);
 // void constraintComplex2 (Graph *g, Node *from, Node *to);

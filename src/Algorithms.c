@@ -30,6 +30,86 @@ void wave_Propagation(Graph **G) {
     printf("Termino \n");
 }
 
+static char *str_concat(const char *a, const char *b) {
+    size_t la = strlen(a);
+    size_t lb = strlen(b);
+    char *out = (char *)malloc(la + lb + 1);  // +1 para el '\0'
+    if (!out) return NULL;
+    memcpy(out, a, la);
+    memcpy(out + la, b, lb);
+    out[la + lb] = '\0';
+    return out;
+}
+
+static void remap_constraints_after_unify(Node *oldw, Node *rep) {
+    // Complex 1: l ⊇ *r
+    constraints_remap_nodes(listComplex1, oldw, rep);
+    // Complex 2: *l ⊇ r
+    constraints_remap_nodes(listComplex2, oldw, rep);
+}
+
+/*
+ * mergeNodes: combina el conjunto de referencias
+ * (Pcur/Pold u otros sets relacionados) de w dentro de v.
+ * - usamos set_union y reemplazamos v->references por la unión.
+ */
+static void mergeNodes(Node *target, Node *source) {
+    Set *mergedRefs = set_union(Pcur(target), Pcur(source));
+    Set *mergedOld = set_union(Pold(target), Pold(source));
+    set_destroy(Pcur(target));
+    set_destroy(Pcur(source));
+    set_destroy(Pold(target));
+    set_destroy(Pold(source));
+    Pcur(target) = mergedRefs;
+    Pold(target) = mergedOld;
+}
+
+/*
+ * unify(g, v, w)
+ * ----------------------------------------------------------------------------
+ * Colapsa el nodo w dentro del representante v.
+ *
+ * Que actualiza:
+ *   - Aristas entrantes x->w  se reemplazan por x->v.
+ *   - Referencias (points-to) hacia w se redirigen a v.
+ *   - Se elimina el posible autociclo v->v si aparece.
+ *   - Se fusionan Pcur/Pold: v := (v ∪ w) (mergeNodes).
+ *   - Se elimina w del grafo.
+ */
+static void unify(Graph **G, Node *target, Node *source) {
+    if (target == source) return;
+    char *merged_name = str_concat(target->name, source->name);
+
+    for(Graph *curGraph = *G; curGraph; curGraph = curGraph->next) {
+        Node *curNode = curGraph->node;
+        // Si currentNode tiene una arista hacia w, reemplazarla por una arista hacia v.
+        if(curNode && set_existElem(curNode->edges, source)) {
+            addEdgeInNode(curNode, target);
+            removeEdgeInNode(curNode, source);
+        }
+        // redirigir referencias a w por rep
+        if(curNode && set_existElem(Pcur(curNode), source)) {
+            removeReference(curNode, source);
+            addReference(curNode, target);
+        }
+    }
+
+    // 2) Remapear constraints complejas (L/R y cache si hace falta)
+    remap_constraints_after_unify(source,target);
+    //3) Eliminar posible autociclo generado
+    removeEdgeInNode(target, target);
+    // 4) Fusionar info (Pcur/Pold, etc.)
+    mergeNodes(target, source);
+
+    // — renombrar el representante —
+    free(target->name);
+    target->name = merged_name;
+
+    // eliminar w del grafo
+    removeNode(G, source);
+
+}
+
 /*
  * Algorithm 2: Collapse SCCs
  *   Detecta componentes fuertemente conexos y colapsarlos a un representante,
@@ -65,58 +145,6 @@ void collapseSCC(Graph **G) {
             unify(G, r, v);
         }
     }
-}
-/*
- * unify(g, v, w)
- * ----------------------------------------------------------------------------
- * Colapsa el nodo w dentro del representante v.
- *
- * Que actualiza:
- *   - Aristas entrantes x->w  se reemplazan por x->v.
- *   - Referencias (points-to) hacia w se redirigen a v.
- *   - Se elimina el posible autociclo v->v si aparece.
- *   - Se fusionan Pcur/Pold: v := (v ∪ w) (mergeNodes).
- *   - Se elimina w del grafo.
- */
-void unify(Graph **G, Node *target, Node *source) {
-    if (target == source) return;
-    char *merged_name = str_concat(target->name, source->name);
-
-    for(Graph *curGraph = *G; curGraph; curGraph = curGraph->next) {
-        Node *curNode = curGraph->node;
-        // Si currentNode tiene una arista hacia w, reemplazarla por una arista hacia v.
-        if(curNode && set_existElem(curNode->edges, source)) {
-            addEdgeInNode(curNode, target);
-            removeEdgeInNode(curNode, source);
-        }
-        // redirigir referencias a w por rep
-        if(curNode && set_existElem(Pcur(curNode), source)) {
-            removeReference(curNode, source);
-            addReference(curNode, target);
-        }
-    }
-
-    // 2) Remapear constraints complejas (L/R y cache si hace falta)
-    remap_constraints_after_unify(source,target);
-    //3) Eliminar posible autociclo generado
-    removeEdgeInNode(target, target);
-    // 4) Fusionar info (Pcur/Pold, etc.)
-    mergeNodes(target, source);
-
-    // — renombrar el representante —
-    free(target->name);
-    target->name = merged_name;
-
-    // eliminar w del grafo
-    removeNode(G, source);
-
-}
-
-void remap_constraints_after_unify(Node *oldw, Node *rep) {
-    // Complex 1: l ⊇ *r
-    constraints_remap_nodes(listComplex1, oldw, rep);
-    // Complex 2: *l ⊇ r
-    constraints_remap_nodes(listComplex2, oldw, rep);
 }
 
 /*
@@ -184,24 +212,8 @@ void visitNode(Node* v, int *I) {
     }
 }
 
-/*
- * mergeNodes: combina el conjunto de referencias
- * (Pcur/Pold u otros sets relacionados) de w dentro de v.
- * - usamos set_union y reemplazamos v->references por la unión.
- */
-void mergeNodes(Node *target, Node *source) {
-    Set *mergedRefs = set_union(Pcur(target), Pcur(source));
-    Set *mergedOld = set_union(Pold(target), Pold(source));
-    set_destroy(Pcur(target));
-    set_destroy(Pcur(source));
-    set_destroy(Pold(target));
-    set_destroy(Pold(source));
-    Pcur(target) = mergedRefs;
-    Pold(target) = mergedOld;
-}
-
 // Propaga el conjunto pdif desde v a w
-void propagationTo(Node *w, Set *pdif) {
+static void propagationTo(Node *w, Set *pdif) {
     Set *oldRefs = Pcur(w);
     Pcur(w) = set_union(oldRefs, pdif);
     // REVIEW:	ver si es correcto clonar el pold aca
@@ -310,16 +322,4 @@ bool add_new_edges() {
         curConstraint = constraint_getNext(curConstraint);
     }
     return add_edges;
-}
-
-
-char *str_concat(const char *a, const char *b) {
-    size_t la = strlen(a);
-    size_t lb = strlen(b);
-    char *out = (char *)malloc(la + lb + 1);  // +1 para el '\0'
-    if (!out) return NULL;
-    memcpy(out, a, la);
-    memcpy(out + la, b, lb);
-    out[la + lb] = '\0';
-    return out;
 }
