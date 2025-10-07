@@ -1,6 +1,6 @@
 digraph{
 rankdir=TB;
-DFG [label="DFG {E, A, DFG}"];
+DFG [label="DFG {DFG, A, E}"];
 A [label="A {E}"];
 BC [label="BC {E}"];
 E [label="E {DFG}"];

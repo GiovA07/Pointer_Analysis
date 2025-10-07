@@ -22,6 +22,7 @@ bool set_empty(Set *s);
 
 Set* set_difference(Set *current, Set *old);
 Set* set_union(Set *set1, Set *set2);
+bool set_union_inplace(Set **dst, Set *src);
 Set* set_clone(Set *src);
 void set_destroy(Set *s);
 

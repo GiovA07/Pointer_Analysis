@@ -65,6 +65,18 @@ Set* set_union(Set *set1, Set *set2) {
     return result;
 }
 
+// Devuelve true si agrego al menos un elemento de src en *dst.
+bool set_union_inplace(Set **dst, Set *src) {
+    bool changed = false;
+    for (Set *setCur = src; setCur; setCur = setCur->next) {
+        if (!set_existElem(*dst, setCur->node)) {
+            set_addElem(dst, setCur->node);
+            changed = true;
+        }
+    }
+    return changed;
+}
+
 Set* set_clone(Set *src) {
     Set *clone = NULL;
     for (Set *c = src; c; c = c->next)

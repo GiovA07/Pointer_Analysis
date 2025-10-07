@@ -30,7 +30,8 @@ void wave_Propagation(Graph **G) {
     printf("Termino \n");
 }
 
-static char *str_concat(const char *a, const char *b) {
+/*Permite concatenar dos strings (La utilizo para concatenar los nombres de los nodos)*/
+static char *str_concat(char *a, char *b) {
     size_t la = strlen(a);
     size_t lb = strlen(b);
     char *out = (char *)malloc(la + lb + 1);  // +1 para el '\0'
@@ -54,14 +55,9 @@ static void remap_constraints_after_unify(Node *oldw, Node *rep) {
  * - usamos set_union y reemplazamos v->references por la unión.
  */
 static void mergeNodes(Node *target, Node *source) {
-    Set *mergedRefs = set_union(Pcur(target), Pcur(source));
-    Set *mergedOld = set_union(Pold(target), Pold(source));
-    set_destroy(Pcur(target));
-    set_destroy(Pcur(source));
-    set_destroy(Pold(target));
-    set_destroy(Pold(source));
-    Pcur(target) = mergedRefs;
-    Pold(target) = mergedOld;
+    // t = t u s
+    set_union_inplace(&Pcur(target), Pcur(source));
+    set_union_inplace(&Pold(target), Pold(source));
 }
 
 /*
@@ -78,6 +74,7 @@ static void mergeNodes(Node *target, Node *source) {
  */
 static void unify(Graph **G, Node *target, Node *source) {
     if (target == source) return;
+
     char *merged_name = str_concat(target->name, source->name);
 
     for(Graph *curGraph = *G; curGraph; curGraph = curGraph->next) {
@@ -265,61 +262,52 @@ void perform_Wave_Propagation() {
  */
 
 bool add_new_edges() {
-    bool add_edges = 0;
-    //Complex 1
-    ListConstraint *curConstraint = listComplex1;
-    while (curConstraint) {
-        Node *l             = constraint_getL(curConstraint);
-        Node *r             = constraint_getR(curConstraint);
-        Set *pCache         = constraint_getCache(curConstraint);
+    bool changed = false;
+
+    // Complex 1:  l ⊇ *r
+    for (ListConstraint *curCons = listComplex1; curCons; curCons = curCons->next) {
+        Node *l             = constraint_getL(curCons);
+        Node *r             = constraint_getR(curCons);
+        Set *pCache         = constraint_getCache(curCons);
 
         //Pnew ← Pcur(r) − Pcache(c)
-        Set *pNew           = set_difference(Pcur(r), pCache);
+        Set *pNew           = set_difference(Pcur(r), curCons->pcache);
         //Pcache(c) ← Pcache(c) ∪ Pnew
-        Set *newCache  = set_union(pCache, pNew);
-        constraint_setCache(curConstraint,newCache);
-        
+        set_union_inplace(&curCons->pcache, pNew);
+
         // for v ∈ Pnew do …
         for (Set* curSet = pNew; curSet ; curSet = curSet->next) {
             /*(v,l) /∈ E */
             Node *v = curSet->node;
             if(v != l && !existEdgeInNode(v, l)) {
                 addEdgeInNode(v,l);
-                add_edges = true;
-                Set *newPCurL = set_union(Pcur(l), Pold(v));
-                node_setReferences(l, newPCurL);
+                changed = true;
+                set_union_inplace(&Pcur(l), Pold(v));
             }
         }
         set_destroy(pNew);
         //set_destroy(pCache);
-        curConstraint = constraint_getNext(curConstraint);
     }
     
     //Complex 2
-    curConstraint = listComplex2;
-    while (curConstraint) {
-        Node *l = constraint_getL(curConstraint);
-        Node *r = constraint_getR(curConstraint);
+    for (ListConstraint *curCons = listComplex2; curCons; curCons = curCons->next) {
+        Node *l = constraint_getL(curCons);
+        Node *r = constraint_getR(curCons);
 
-        Set *pCache = constraint_getCache(curConstraint);
-        Set *pNew = set_difference(Pcur(l), pCache);
-        
-        Set *unionCacheNew = set_union(pCache, pNew);
-        constraint_setCache(curConstraint,unionCacheNew);
+        Set *pNew = set_difference(Pcur(l), curCons->pcache);
+        set_union_inplace(&curCons->pcache, pNew);
 
         for (Set *curSet = pNew; curSet; curSet = curSet->next) {
             /*(r, v) /∈ E  */
             Node *v = curSet->node;
             if(r != v && !existEdgeInNode(r,v)) {
                 addEdgeInNode(r,v);
-                add_edges = true;
-                Set *newPCurV = set_union(Pcur(v), Pold(r));
-                node_setReferences(v, newPCurV);
+                changed = true;
+                set_union_inplace(&Pcur(v), Pold(r));
             }
         }
         set_destroy(pNew);
         //set_destroy(pCache);  ///VER QUE HACER CON ESTO (porque causa error)
-        curConstraint = constraint_getNext(curConstraint);
     }
-    return add_edges;
+    return changed;
 }
