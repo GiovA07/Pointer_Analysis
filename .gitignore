@@ -65,3 +65,4 @@ Generated\ Files/
 # Files
 Parser/*.c
 Parser/*.h
+Parser/parser

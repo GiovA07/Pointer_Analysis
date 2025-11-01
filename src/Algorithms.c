@@ -1,6 +1,11 @@
 
 #include "../include/Algorithms.h"
 
+
+
+ListConstraint *listComplex1 = NULL;  // a ⊇ *b
+ListConstraint *listComplex2 = NULL;  // *a ⊇ b
+
 // Mapas para D y R
 DMap *D;
 RMap *R;
@@ -32,8 +37,8 @@ void wave_Propagation(Graph **G) {
 
 /*Permite concatenar dos strings (La utilizo para concatenar los nombres de los nodos)*/
 static char *str_concat(char *a, char *b) {
-    size_t la = strlen(a);
-    size_t lb = strlen(b);
+    int la = strlen(a);
+    int lb = strlen(b);
     char *out = (char *)malloc(la + lb + 1);  // +1 para el '\0'
     if (!out) return NULL;
     memcpy(out, a, la);
@@ -217,6 +222,7 @@ static void propagationTo(Node *w, Set *pdif) {
     Pold(w) = set_clone(Pcur(w));
     set_destroy(oldRefs);
 }
+
 
 /*
  * Algorithm 4: perform_Wave_Propagation

@@ -11,6 +11,11 @@ typedef struct ListConstraint {
     struct ListConstraint *next;        // Siguiente restriccion compleja
 } ListConstraint;
 
+
+extern ListConstraint *listComplex1;  // a ⊇ *b
+extern ListConstraint *listComplex2;  // *a ⊇ b
+
+
 void addConstraint(ListConstraint **list, Node *a, Node *b);
 Node* constraint_getL (ListConstraint *list);
 void constraint_setL(ListConstraint *list, Node *rep);

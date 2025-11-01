@@ -4,16 +4,17 @@
 
 #include "./Graph.h"
 #include "./Node.h"
+#include "./ListConstraint.h"
 
 #ifndef ADM_H
 #define ADM_H
 
 // Funciones para los constraints
-void constraitBaseAlg(Graph **g, char *nameNode1, char *nameNode2);
-void constraintSimpleAlg(Graph **g, char *nameNode1, char *nameNode2);
+void constraitBase(Graph **g, char *nameNode1, char *nameNode2);
+void constraintSimple(Graph **g, char *nameNode1, char *nameNode2);
 
-// int constraintComplex1(Graph *g, Node *node);
-// void constraintComplex2 (Graph *g, Node *from, Node *to);
+void constraintComplex1(Graph **g, char *l_name, char *r_name);
+void constraintComplex2(Graph **g, char *l_name, char *r_name);
 
 #endif
 
