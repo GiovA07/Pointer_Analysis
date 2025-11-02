@@ -20,7 +20,7 @@ static void removeAllInEdgesTo(Graph *g, Node *a) {
 
 /*  Mata el estado previo de la variable 'a' */
 static void kill_var_state(Graph *g, Node *a) {
-    clean_reference(a);         /* borra {&...} en 'a' */
+    set_destroy(a->references);         /* borra {&...} en 'a' */
     removeAllInEdgesTo(g, a);   /* quita todas las x->a */
      /* Pensar si agregar:
        clearPcur(a);

@@ -31,14 +31,12 @@ void set_deleteElem(Set **set, Node *node) {
                 *set = currentElem->next;
             else
                 prev->next = currentElem->next;
+            //Luego revisar si hacer free del eliminado
+            return;
         }
         prev = currentElem;
         currentElem = currentElem->next;
     }
-}
-
-Set* set_nextElem(Set *set) {
-    return set ? set->next : NULL;
 }
 
 Set* set_difference(Set *current, Set *old) {

@@ -45,10 +45,6 @@ void constraint_setCache(ListConstraint *list, Set *newCache) {
         set_destroy(old);
 }
 
-ListConstraint* constraint_getNext(ListConstraint *list) {
-    return list->next;
-}
-
 void constraints_remap_nodes(ListConstraint *list, Node *oldw, Node *rep) {
     for (ListConstraint *c = list; c; c = c->next) {
         if (c->superset     == oldw) c->superset     = rep;

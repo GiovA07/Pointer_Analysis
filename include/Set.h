@@ -13,7 +13,6 @@ typedef struct Set{
 } Set;
 
 Set* createSet();
-Set* set_nextElem(Set *set);
 
 bool set_existElem(Set *set, Node *node);       // Verificar si un nodo esta en el conjunto
 bool set_addElem(Set **set, Node *node);        // Agregar un nodo al conjunto

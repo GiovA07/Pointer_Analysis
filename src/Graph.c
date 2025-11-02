@@ -99,10 +99,10 @@ void generateDot(Graph *g, FILE* file) {
         Set *ref = node->references;
         while(ref != NULL) {
             strcat(refList, ref->node->name);
-            if (set_nextElem(ref) != NULL) {
+            if (ref->next != NULL) {
                 strcat(refList, ", ");
             }
-            ref = set_nextElem(ref);
+            ref = ref->next;
         }
 
         fprintf(file, "%s [label=\"%s {%s}\"];\n", node->name, node->name, refList);
@@ -117,7 +117,7 @@ void generateDot(Graph *g, FILE* file) {
         Set* edge = node->edges;
         while(edge != NULL) {
             fprintf(file, "%s -> %s;\n", node->name, edge->node->name);
-            edge = set_nextElem(edge);
+            edge = edge->next;
         }
 
         g = g->next;

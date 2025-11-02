@@ -22,10 +22,8 @@ void constraint_setL(ListConstraint *list, Node *rep);
 Node* constraint_getR (ListConstraint *list);
 void constraint_setR(ListConstraint *list, Node *rep);
 Set* constraint_getCache(ListConstraint *list);
-
 void constraint_setCache(ListConstraint *list, Set *newCache);
 
-ListConstraint* constraint_getNext(ListConstraint *list);
 void constraints_remap_nodes(ListConstraint *list, Node *oldw, Node *rep);
 
 void printConstraintComplex1(ListConstraint *list);
