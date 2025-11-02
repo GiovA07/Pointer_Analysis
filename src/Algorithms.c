@@ -109,6 +109,7 @@ static void unify(Graph **G, Node *target, Node *source) {
 
     // eliminar w del grafo
     removeNode(G, source);
+    /***** DESTRUIR EL NODE al al haber removido todo deberia liberar la memoria dle node *****/
 
 }
 
@@ -274,7 +275,6 @@ bool add_new_edges() {
     for (ListConstraint *curCons = listComplex1; curCons; curCons = curCons->next) {
         Node *l             = constraint_getL(curCons);
         Node *r             = constraint_getR(curCons);
-        Set *pCache         = constraint_getCache(curCons);
 
         //Pnew ← Pcur(r) − Pcache(c)
         Set *pNew           = set_difference(Pcur(r), curCons->pcache);

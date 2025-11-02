@@ -27,6 +27,7 @@ void pop(Stack *stack) {
     }
     StackNode *oldTop = stack->top;
     stack->top = oldTop->next;
+    free(oldTop);
 }
 
 Node* top(Stack *stack) {

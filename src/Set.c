@@ -51,7 +51,6 @@ Set* set_difference(Set *current, Set *old) {
 Set* set_union(Set *set1, Set *set2) {
     // Resultado empieza vacio
     Set *result = createSet();
-    Set *cur;
 
     // agregamos todos los elementos de set1 y set2
     for (Set *c = set1; c; c = c->next)
