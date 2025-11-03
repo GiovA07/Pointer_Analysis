@@ -140,3 +140,85 @@ void printDot(Graph *g, const char* filename) {
 
 
 
+Graph* graph_clone(Graph *src) {
+    if (!src) return NULL;
+    Graph *result = NULL;
+
+    // 1) clonar nodos
+    for (Graph *g=src; g; g=g->next) {
+        addNode(&result, createNode(g->node->name));
+    }
+
+    // 2) copiar references y edges por nombre
+    for (Graph *g=src; g; g=g->next) {
+        Node *n_src = g->node;
+        Node *n_dst = findNode(result, n_src->name)->node;
+
+        for (Set *r=n_src->references; r; r=r->next) {
+            Node *v_dst = findNode(result, r->node->name)->node;
+            addReference(n_dst, v_dst);
+        }
+        for (Set *e=n_src->edges; e; e=e->next) {
+            Node *v_dst = findNode(result, e->node->name)->node;
+            addEdgeInNode(n_dst, v_dst);
+        }
+    }
+    return result;
+}
+
+// Helper: buscar o crear por nombre dentro de un grafo. (UTILIZADO EN EL JOIN) */
+static Node* ensure_node_in(Graph **J, char *name) {
+    Graph *g = findNode(*J, name);
+    if (g) return g->node;
+    Node *n = createNode(name);
+    addNode(J, n);
+    return n;
+}
+
+Graph* graph_join(Graph *a, Graph *b) {
+    Graph *j = NULL;
+
+    // 1) Asegurar todos los nodos de A y B en el join
+    for (Graph *ga = a; ga; ga = ga->next) {
+        ensure_node_in(&j, ga->node->name);
+    }
+    for (Graph *gb = b; gb; gb = gb->next) {
+        ensure_node_in(&j, gb->node->name);
+    }
+
+    // 2) Copiar referencias y aristas de A al grafo de join
+    for (Graph *ga = a; ga; ga = ga->next) {
+        Node *na_j = ensure_node_in(&j, ga->node->name);
+        /* referencias (Pcur) */
+        for (Set *r = ga->node->references; r; r = r->next) {
+            Node *v_j = ensure_node_in(&j, r->node->name);
+            addReference(na_j, v_j);
+        }
+        /* aristas */
+        for (Set *e = ga->node->edges; e; e = e->next) {
+            Node *v_j = ensure_node_in(&j, e->node->name);
+            addEdgeInNode(na_j, v_j);
+        }
+    }
+
+    // 3) Copiar referencias y aristas de B al grafo de join
+    for (Graph *gb = b; gb; gb = gb->next) {
+        Node *nb_j = ensure_node_in(&j, gb->node->name);
+        for (Set *r = gb->node->references; r; r = r->next) {
+            Node *v_j = ensure_node_in(&j, r->node->name);
+            addReference(nb_j, v_j);
+        }
+        for (Set *e = gb->node->edges; e; e = e->next) {
+            Node *v_j = ensure_node_in(&j, e->node->name);
+            addEdgeInNode(nb_j, v_j);
+        }
+    }
+
+    // 4) ver si hacer el Pold(j) := Pcur(j) para arrancar limpio el proximo WP
+
+    return j;
+}
+
+
+
+
