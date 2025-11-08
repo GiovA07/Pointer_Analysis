@@ -87,6 +87,7 @@ void set_destroy(Set *s) {
         free(s);
         s = next;
     }
+    s = NULL;
 }
 
 bool set_empty(Set *s) { return s == NULL; }

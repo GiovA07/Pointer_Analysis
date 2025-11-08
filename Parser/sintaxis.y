@@ -24,16 +24,11 @@ int yylex();
 %token TPAR_OP TPAR_CL
 %token IF ELSE WHILE RETURN
 
-
-
-
-
-
 %%
 
 program: statements                { 
-                                    Graph *graph = NULL;         // grafo inicial vacío
-                                    eval_seq($1, &graph);       // aquí se arma todo + WP en cada if
+                                    Graph *graph = NULL; 
+                                    eval_seq($1, &graph); 
                                     printDot(graph, "../output/grafo.dot");
                                     opSeq_destroy($1);
                                    }

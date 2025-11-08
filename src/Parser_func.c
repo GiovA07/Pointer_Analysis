@@ -102,12 +102,21 @@ void opSeq_destroy(OpSeq *s){
 void eval_seq(OpSeq *seq, struct Graph **G){
   for(Op *op=seq->head; op; op=op->next){
     switch(op->kind){
-      case OP_BASE:   constraitBase(G,   op->a, op->b); break;
-      case OP_SIMPLE: constraintSimple(G, op->a, op->b); break;
-      case OP_C1:     constraintComplex1(G, op->a, op->b); break;
-      case OP_C2:     constraintComplex2(G, op->a, op->b); break;
+        case OP_BASE:  {  
+            constraitBase(G,   op->a, op->b); 
+            break;
+        }
+        case OP_SIMPLE: { 
+            constraintSimple(G, op->a, op->b); break;
+        }
+        case OP_C1: {    
+            constraintComplex1(G, op->a, op->b); break;
+        }
+      case OP_C2: {    
+            constraintComplex2(G, op->a, op->b); break;
+        }
 
-      case OP_IF: break;
+        case OP_IF: break;
     }
   }
   wave_Propagation(G);

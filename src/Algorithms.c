@@ -219,7 +219,7 @@ void visitNode(Node* v, int *I) {
 static void propagationTo(Node *w, Set *pdif) {
     Set *oldRefs = Pcur(w);
     Pcur(w) = set_union(oldRefs, pdif);
-    // REVIEW:	ver si es correcto clonar el pold aca
+    /** REVIEW:	ver si es correcto clonar el pold aca*/
     Pold(w) = set_clone(Pcur(w));
     set_destroy(oldRefs);
 }
@@ -240,6 +240,7 @@ void perform_Wave_Propagation() {
         Set *pdif = set_difference(Pcur(v), Pold(v));
         //Pold(v) ← Pcur(v)
         set_destroy(Pold(v));
+        Pold(v) = NULL;
         Pold(v) = set_clone(Pcur(v));
         //por cada w tal que (v,w) ∈ E, Pcur(w) ← Pcur(w) ∪ Pdif
         for (Set *edge = v->edges; edge; edge = edge->next) {
@@ -247,6 +248,7 @@ void perform_Wave_Propagation() {
             propagationTo(w, pdif);
         }
         set_destroy(pdif);
+        pdif = NULL;
     }
 }
 

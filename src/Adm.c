@@ -21,6 +21,7 @@ static void removeAllInEdgesTo(Graph *g, Node *a) {
 /*  Mata el estado previo de la variable 'a' */
 static void kill_var_state(Graph *g, Node *a) {
     set_destroy(a->references);         /* borra {&...} en 'a' */
+    a->references = NULL;
     removeAllInEdgesTo(g, a);   /* quita todas las x->a */
      /* Pensar si agregar:
        clearPcur(a);
@@ -31,7 +32,7 @@ static void kill_var_state(Graph *g, Node *a) {
 void constraitBase(Graph **g, char *dst_a, char *src_b) {
     Node *a = ensure_node(g, dst_a);
     Node *b = ensure_node(g, src_b);
-    // kill_var_state(*g, a);
+    kill_var_state(*g, a);
     addReference(a, b);         /* Agrega: la referencia {b} en el nodo a. */
 }
 
@@ -40,7 +41,7 @@ void constraintSimple(Graph **g, char *dst_a, char *src_b) {
     Node *a = ensure_node(g, dst_a);
     Node *b = ensure_node(g, src_b);
     Graph *bGraph = findNode(*g, b->name);
-    // kill_var_state(*g,a);
+    kill_var_state(*g,a);
     addEdge(bGraph, a);                 /* crea la arista b -> a */
 }
 
