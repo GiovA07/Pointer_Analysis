@@ -75,6 +75,12 @@ Op* op_if(OpSeq *t, OpSeq *e){
     o->else_seq=e; 
     return o; 
 }
+Op* op_while(OpSeq *body){ 
+    Op* o=new_op(OP_WHILE); 
+    o->then_seq = body; 
+    o->else_seq = NULL; 
+    return o; 
+}
 
 void opSeq_destroy(OpSeq *s){
   for (Op *o= s->head, *next; o; o=next){
@@ -135,6 +141,20 @@ void eval_seq(OpSeq *seq, struct Graph **G){
                 *G = J;
             }
             break;
+        }
+
+        case OP_WHILE: {
+            Graph *base = *G;
+            Graph *gwhile = graph_clone(base);
+
+            //Mientras no cambie el grafo
+                // evaluar op.then_seq en el grafo gwhile
+                // ejecuto el algoritmo wp
+            
+            // Si sale del ciclo es porque ya el grafo no cambio con respecto al anterior.
+            // Hago el join con el base
+            break;
+
         }
     }
   }

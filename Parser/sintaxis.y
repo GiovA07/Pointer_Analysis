@@ -81,7 +81,10 @@ statement:
 
     | WHILE TPAR_OP cond_skip TPAR_CL block
       {
-        /* para reconocer la estructura */
+        OpSeq *s = opSeq_new();
+        opSeq_push(s, op_while($5));
+        $$ = s;
+        printf("Op WHILE\n");
       }
 
     /* Bloque (por si quiero anidar) */

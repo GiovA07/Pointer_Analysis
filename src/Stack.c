@@ -44,5 +44,3 @@ void destroyStack(Stack *stack) {
     if (!stack) return;
     free(stack);
 }
-
-

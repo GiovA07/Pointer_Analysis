@@ -218,7 +218,3 @@ Graph* graph_join(Graph *a, Graph *b) {
 
     return j;
 }
-
-
-
-
