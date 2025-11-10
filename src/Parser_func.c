@@ -116,7 +116,26 @@ void eval_seq(OpSeq *seq, struct Graph **G){
             constraintComplex2(G, op->a, op->b); break;
         }
 
-        case OP_IF: break;
+        case OP_IF: {
+            Graph *base = *G;
+            Graph *gThen = graph_clone(base);
+            eval_seq(op->then_seq, &gThen);
+            wave_Propagation(&gThen);
+            if(op->else_seq) {
+                //Rama del ELSE
+                Graph *gElse = graph_clone(base);
+                eval_seq(op->else_seq, &gElse);
+                wave_Propagation(&gElse);
+
+                Graph *J = graph_join(gThen, gElse);
+                *G = J;
+            } else {
+                // if sin else
+                Graph *J = graph_join(base, gThen);
+                *G = J;
+            }
+            break;
+        }
     }
   }
   wave_Propagation(G);

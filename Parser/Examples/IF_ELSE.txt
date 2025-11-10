@@ -1,0 +1,9 @@
+A = &X;
+if (cond) {
+  B = A;
+} else {
+  B = &Y;
+}
+D = *B;
+*B = F;
+F = &A;
