@@ -66,11 +66,17 @@ statement:
 
     | IF TPAR_OP cond_skip TPAR_CL block
       {
-        /* para reconocer la estructura */
+        OpSeq *s = opSeq_new();
+        opSeq_push(s, op_if($5, NULL));
+        $$ = s;
+        printf("Op IF SOLO\n");
       }
     | IF TPAR_OP cond_skip TPAR_CL block ELSE block
       {
-        /* para reconocer la estructura */
+        OpSeq *s = opSeq_new();
+        opSeq_push(s, op_if($5, $7));
+        $$ = s;
+        printf("Op IF y ELSE\n");
       }
 
     | WHILE TPAR_OP cond_skip TPAR_CL block

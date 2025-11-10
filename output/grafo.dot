@@ -1,16 +1,14 @@
 digraph{
 rankdir=TB;
-D [label="D {G}"];
 F [label="F {A}"];
-A [label="A {E}"];
-B [label="B {E}"];
-G [label="G {A}"];
-E [label="E {G}"];
-C [label="C {}"];
-H [label="H {E}"];
-F -> G;
+D [label="D {}"];
+Y [label="Y {A}"];
+X [label="X {A}"];
+A [label="A {X}"];
+B [label="B {Y, X}"];
+F -> X;
+F -> Y;
+Y -> D;
+X -> D;
 A -> B;
-A -> H;
-B -> C;
-E -> D;
 }
