@@ -146,15 +146,20 @@ void eval_seq(OpSeq *seq, struct Graph **G){
         case OP_WHILE: {
             Graph *base = *G;
             Graph *gwhile = graph_clone(base);
+            while (1) {
+                eval_seq(op->then_seq, &gwhile);
+                wave_Propagation(&gwhile);
+                Graph *join = graph_join(base, gwhile);
 
-            //Mientras no cambie el grafo
-                // evaluar op.then_seq en el grafo gwhile
-                // ejecuto el algoritmo wp
-            
-            // Si sale del ciclo es porque ya el grafo no cambio con respecto al anterior.
-            // Hago el join con el base
-            
-
+                if (graphs_equal(join, gwhile)) {
+                    *G = join;
+                    /***** aca deberia destruir el grafo gwhile *****/
+                    break;
+                }
+                //Sino sigo ejecutando el while
+                /***** aca deberia destruir el grafo gwhile *****/
+                gwhile = join;
+            }
         }
     }
   }

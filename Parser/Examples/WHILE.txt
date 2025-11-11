@@ -1,0 +1,11 @@
+A = &X;
+B = &Y;
+while (cond) {
+  C = A;
+  A = B;
+}
+D = *C;
+
+
+
+// CAUSA UN BUCLE INFINITO TENGO QUE MEJORAR EL GRAPH_EQUAL

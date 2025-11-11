@@ -228,7 +228,7 @@ static int sets_same(Set *a, Set *b){
 
 static Node* find_by_name(Graph *g, char *name) {
     Graph *gname = findNode(g, name);
-    if(gname->node) return gname->node;
+    if(gname) return gname->node;
     return NULL;
 }
 
