@@ -153,7 +153,7 @@ void eval_seq(OpSeq *seq, struct Graph **G){
             
             // Si sale del ciclo es porque ya el grafo no cambio con respecto al anterior.
             // Hago el join con el base
-            break;
+            
 
         }
     }

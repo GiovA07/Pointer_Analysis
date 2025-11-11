@@ -218,3 +218,37 @@ Graph* graph_join(Graph *a, Graph *b) {
 
     return j;
 }
+
+static int sets_same(Set *a, Set *b){
+    // igualdad por identidad de nodos (punteros) — tus sets guardan Node*
+    for (Set *x=a; x; x=x->next) if (!set_existElem(b, x->node)) return 0;
+    for (Set *y=b; y; y=y->next) if (!set_existElem(a, y->node)) return 0;
+    return 1;
+}
+
+static Node* find_by_name(Graph *g, char *name) {
+    Graph *gname = findNode(g, name);
+    if(gname->node) return gname->node;
+    return NULL;
+}
+
+int graphs_equal(Graph *a, Graph *b){
+    // mismo conjunto de nodos por nombre
+    for (Graph *ga = a; ga; ga = ga->next){
+        Node *nName = find_by_name(b, ga->node->name);
+        if (!nName) return 0;
+    }
+    for (Graph *gb=b; gb; gb=gb->next){
+        Node *nName = find_by_name(a, gb->node->name);
+        if (!nName) return 0;
+    }
+    // mismas refs y edges por nodo
+    for (Graph *ga=a; ga; ga=ga->next){
+        Node *na = ga->node;
+        Node *nb = find_by_name(b, na->name);
+        if (!nb) return 0;
+        if (!sets_same(na->references, nb->references)) return 0;
+        if (!sets_same(na->edges,      nb->edges))      return 0;
+    }
+    return 1;
+}
