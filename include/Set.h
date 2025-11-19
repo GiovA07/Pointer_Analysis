@@ -25,6 +25,7 @@ bool set_union_inplace(Set **dst, Set *src);
 Set* set_clone(Set *src);
 void set_destroy(Set *s);
 
+bool set_equals(Set *a, Set *b);
 void set_print(Set *s);
 
 #endif

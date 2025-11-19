@@ -108,26 +108,19 @@ void opSeq_destroy(OpSeq *s){
 void eval_seq(OpSeq *seq, struct Graph **G){
   for(Op *op=seq->head; op; op=op->next){
     switch(op->kind){
-        case OP_BASE:  {  
-            constraitBase(G,   op->a, op->b); 
-            break;
-        }
-        case OP_SIMPLE: { 
-            constraintSimple(G, op->a, op->b); break;
-        }
-        case OP_C1: {    
-            constraintComplex1(G, op->a, op->b); break;
-        }
-      case OP_C2: {    
-            constraintComplex2(G, op->a, op->b); break;
-        }
+        case OP_BASE:   constraitBase(G,   op->a, op->b); break;
+        case OP_SIMPLE: constraintSimple(G, op->a, op->b); break;
+        case OP_C1:     constraintComplex1(G, op->a, op->b); break;
+        case OP_C2:     constraintComplex2(G, op->a, op->b); break;
 
         case OP_IF: {
+            printf("[Operator] IF\n");
             Graph *base = *G;
             Graph *gThen = graph_clone(base);
             eval_seq(op->then_seq, &gThen);
             wave_Propagation(&gThen);
             if(op->else_seq) {
+                printf("[Operator] ELSE\n");
                 //Rama del ELSE
                 Graph *gElse = graph_clone(base);
                 eval_seq(op->else_seq, &gElse);
@@ -144,22 +137,31 @@ void eval_seq(OpSeq *seq, struct Graph **G){
         }
 
         case OP_WHILE: {
-            Graph *base = *G;
-            Graph *gwhile = graph_clone(base);
-            while (1) {
-                eval_seq(op->then_seq, &gwhile);
-                wave_Propagation(&gwhile);
-                Graph *join = graph_join(base, gwhile);
+            printf("[Operator] WHILE\n");
+            Graph *gaux = graph_clone(*G);
+            int maxwhile = 10;
+            while (maxwhile > 0) {
+                Graph *prev = graph_clone(gaux);
 
-                if (graphs_equal(join, gwhile)) {
+                eval_seq(op->then_seq, &gaux);
+                Graph *join = graph_join(prev, gaux);
+                if (graphs_equal(join, prev)) {
                     *G = join;
-                    /***** aca deberia destruir el grafo gwhile *****/
+                    // TODO: graph_destroy(prev);
+                    // TODO: graph_destroy(gaux); // si join != gaux
                     break;
                 }
                 //Sino sigo ejecutando el while
-                /***** aca deberia destruir el grafo gwhile *****/
-                gwhile = join;
+                // TODO: graph_destroy(prev);
+                // TODO: graph_destroy(gaux);
+                gaux = join;
+                maxwhile = maxwhile - 1;
             }
+            if (maxwhile <= 0) {
+                *G = gaux;
+                printf("Se hizo el mayor ciclo posible \n");
+            }
+            break;
         }
     }
   }

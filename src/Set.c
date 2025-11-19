@@ -97,3 +97,28 @@ void set_print(Set *set) {
     for (; set; set = set->next)
         printf("- %s\n", set->node->name);
 }
+
+
+static int set_contains_name(Set *s, char *name) {
+    for (; s; s = s->next) 
+        if (strcmp(s->node->name, name) == 0)  {
+            return 1;
+        }
+    return 0;
+}
+
+
+bool set_equals(Set *a, Set *b) {
+    if (a == b) return true; 
+    if (!a || !b) return false; 
+
+   // a ⊆ b
+    for (Set *p = a; p; p = p->next)
+        if (!set_contains_name(b, p->node->name)) return false;
+
+    // b ⊆ a
+    for (Set *q = b; q; q = q->next)
+        if (!set_contains_name(a, q->node->name)) return false;
+
+    return true;
+}
