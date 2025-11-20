@@ -1,0 +1,9 @@
+A = &X;
+B = &Y;
+
+while (cond) {
+  A = B;
+  B = A;
+}
+
+D = *A; 

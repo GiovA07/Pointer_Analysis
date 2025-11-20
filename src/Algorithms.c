@@ -32,7 +32,6 @@ void wave_Propagation(Graph **G) {
         perform_Wave_Propagation();
         changed = add_new_edges();
     } while (changed == true);
-    printf("Termino \n");
 }
 
 /*Permite concatenar dos strings (La utilizo para concatenar los nombres de los nodos)*/

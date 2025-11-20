@@ -220,5 +220,37 @@ Graph* graph_join(Graph *a, Graph *b) {
 }
 
 
+static Node* find_by_name(Graph *g, char *name){
+    Graph *gx = findNode(g, name);
+    return gx ? gx->node : NULL;
+}
 
 
+int graphs_equal(Graph *a, Graph *b){
+    if (a == b) return 1;
+    if (!a || !b) return 0;
+
+    // mismo conjunto de nodos por nombre
+    for (Graph *ga = a; ga; ga = ga->next){
+        Node *nName = find_by_name(b, ga->node->name);
+        if (!nName) return 0;
+    }
+    for (Graph *gb=b; gb; gb=gb->next){
+        Node *nName = find_by_name(a, gb->node->name);
+        if (!nName) return 0;
+    }
+    // mismas refs y edges por nodo
+    for (Graph *ga=a; ga; ga=ga->next){
+        Node *na = ga->node;
+        Node *nb = find_by_name(b, na->name);
+
+        if (!nb) return 0;
+        if (!set_equals(na->references, nb->references)) { 
+            return 0; 
+        }
+        if (!set_equals(na->edges, nb->edges))  {   
+            return 0;
+        }
+    }
+    return 1;
+}

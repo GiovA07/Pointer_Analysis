@@ -34,6 +34,7 @@ void constraitBase(Graph **g, char *dst_a, char *src_b) {
     Node *b = ensure_node(g, src_b);
     kill_var_state(*g, a);
     addReference(a, b);         /* Agrega: la referencia {b} en el nodo a. */
+    printf("[Operator] Base: %s ⊇ %s\n", dst_a, src_b);
 }
 
 
@@ -43,6 +44,7 @@ void constraintSimple(Graph **g, char *dst_a, char *src_b) {
     Graph *bGraph = findNode(*g, b->name);
     kill_var_state(*g,a);
     addEdge(bGraph, a);                 /* crea la arista b -> a */
+    printf("[Operator] Simple: %s ⊇ %s\n", dst_a, src_b);
 }
 
 
@@ -51,7 +53,7 @@ void constraintComplex1(Graph **g, char *l_name, char *r_name) {
     Node *l = ensure_node(g, l_name);
     Node *r = ensure_node(g, r_name);
     addConstraint(&listComplex1, l, r);
-    printf("Complex 1 Constraint: %s ⊇ *%s\n", l_name, r_name);
+    printf("[Operator] Complex 1 Constraint: %s ⊇ *%s\n", l_name, r_name);
 }
 
 // Complex 2: *l ⊇ r
@@ -59,5 +61,5 @@ void constraintComplex2 (Graph **g, char *l_name, char *r_name) {
     Node *l = ensure_node(g, l_name);
     Node *r = ensure_node(g, r_name);
     addConstraint(&listComplex2, l, r);
-    printf("Complex 2 Constraint: *%s ⊇ %s\n", l_name, r_name);
+    printf("[Operator] Complex 2 Constraint: *%s ⊇ %s\n", l_name, r_name);
 }

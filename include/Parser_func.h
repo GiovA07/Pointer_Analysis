@@ -6,7 +6,7 @@
 #include "./Graph.h"
 
 
-typedef enum { OP_BASE, OP_SIMPLE, OP_C1, OP_C2, OP_IF} OpKind;
+typedef enum { OP_BASE, OP_SIMPLE, OP_C1, OP_C2, OP_IF, OP_WHILE} OpKind;
 typedef struct Op   Op;
 typedef struct OpSeq OpSeq;
 
@@ -31,6 +31,8 @@ Op* op_simple(char *a, char *b);
 Op* op_c1(char *l, char *r);
 Op* op_c2(char *l, char *r);
 Op* op_if(OpSeq *thenp, OpSeq *elsep);
+Op* op_while(OpSeq *body);
+
 
 void eval_seq(OpSeq *seq, struct Graph **G);
 

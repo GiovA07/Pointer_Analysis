@@ -72,5 +72,3 @@ void printConstraintComplex2(ListConstraint *list) {
     for (; list; list = list->next)
         printf("*%s ⊇ %s\n", list->superset->name, list->dereferenced->name);
 }
-
-

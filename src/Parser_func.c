@@ -75,6 +75,12 @@ Op* op_if(OpSeq *t, OpSeq *e){
     o->else_seq=e; 
     return o; 
 }
+Op* op_while(OpSeq *body){ 
+    Op* o=new_op(OP_WHILE); 
+    o->then_seq = body; 
+    o->else_seq = NULL; 
+    return o; 
+}
 
 void opSeq_destroy(OpSeq *s){
   for (Op *o= s->head, *next; o; o=next){
@@ -102,26 +108,19 @@ void opSeq_destroy(OpSeq *s){
 void eval_seq(OpSeq *seq, struct Graph **G){
   for(Op *op=seq->head; op; op=op->next){
     switch(op->kind){
-        case OP_BASE:  {  
-            constraitBase(G,   op->a, op->b); 
-            break;
-        }
-        case OP_SIMPLE: { 
-            constraintSimple(G, op->a, op->b); break;
-        }
-        case OP_C1: {    
-            constraintComplex1(G, op->a, op->b); break;
-        }
-      case OP_C2: {    
-            constraintComplex2(G, op->a, op->b); break;
-        }
+        case OP_BASE:   constraitBase(G,   op->a, op->b); break;
+        case OP_SIMPLE: constraintSimple(G, op->a, op->b); break;
+        case OP_C1:     constraintComplex1(G, op->a, op->b); break;
+        case OP_C2:     constraintComplex2(G, op->a, op->b); break;
 
         case OP_IF: {
+            printf("[Operator] IF\n");
             Graph *base = *G;
             Graph *gThen = graph_clone(base);
             eval_seq(op->then_seq, &gThen);
             wave_Propagation(&gThen);
             if(op->else_seq) {
+                printf("[Operator] ELSE\n");
                 //Rama del ELSE
                 Graph *gElse = graph_clone(base);
                 eval_seq(op->else_seq, &gElse);
@@ -133,6 +132,34 @@ void eval_seq(OpSeq *seq, struct Graph **G){
                 // if sin else
                 Graph *J = graph_join(base, gThen);
                 *G = J;
+            }
+            break;
+        }
+
+        case OP_WHILE: {
+            printf("[Operator] WHILE\n");
+            Graph *gaux = graph_clone(*G);
+            int maxwhile = 10;
+            while (maxwhile > 0) {
+                Graph *prev = graph_clone(gaux);
+
+                eval_seq(op->then_seq, &gaux);
+                Graph *join = graph_join(prev, gaux);
+                if (graphs_equal(join, prev)) {
+                    *G = join;
+                    // TODO: graph_destroy(prev);
+                    // TODO: graph_destroy(gaux); // si join != gaux
+                    break;
+                }
+                //Sino sigo ejecutando el while
+                // TODO: graph_destroy(prev);
+                // TODO: graph_destroy(gaux);
+                gaux = join;
+                maxwhile = maxwhile - 1;
+            }
+            if (maxwhile <= 0) {
+                *G = gaux;
+                printf("Se hizo el mayor ciclo posible \n");
             }
             break;
         }
