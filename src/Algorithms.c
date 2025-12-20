@@ -89,12 +89,13 @@ static void unify(Graph **G, Node *target, Node *source) {
 
     // 2) Remapear constraints complejas (L/R y cache si hace falta)
     remap_constraints_after_unify(source,target);
-    //3) Eliminar posible autociclo generado
-    removeEdgeInNode(target, target);
-    // 4) Fusionar info (Pcur/Pold, etc.)
-    mergeNodes(target, source);
-    // 5) las edges salientes de sources, agregarlas a target
+    // 3) las edges salientes de sources, agregarlas a target
     out_edges_in_target(target,source);
+    //4) Eliminar posible autociclo generado
+    removeEdgeInNode(target, target);
+    // 5) Fusionar info (Pcur/Pold, etc.)
+    mergeNodes(target, source);
+
     //6) eliminar w del grafo
     removeNode(G, source);
     /** TODO: DESTRUIR EL NODE al al haber removido todo deberia liberar la memoria dle node *****/

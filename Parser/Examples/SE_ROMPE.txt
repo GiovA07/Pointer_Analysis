@@ -1,9 +1,10 @@
-A = &X;
-B = &Y;
-
-while (cond) {
-  A = B;
-  B = A;
+A = &Y;
+B = &X;
+B = C;          // edge C -> B
+if (cond) {
+  A = B;        // edge B -> A + kill(A)
+  B = A;       // edge A -> B + kill(B)
+  B= &D;
 }
-
-D = *A;
+B = C;          // edge C -> B  (otra vez)
+C = &X;

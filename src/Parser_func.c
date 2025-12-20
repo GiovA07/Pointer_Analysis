@@ -128,10 +128,12 @@ void eval_seq(OpSeq *seq, struct Graph **G){
 
                 Graph *J = graph_join(gThen, gElse);
                 *G = J;
+                /*TODO: destruir gthen/gelse*/
             } else {
                 // if sin else
                 Graph *J = graph_join(base, gThen);
                 *G = J;
+                /*TODO: destruir gthen*/
             }
             break;
         }
