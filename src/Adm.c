@@ -18,11 +18,17 @@ static void removeAllInEdgesTo(Graph *g, Node *a) {
     }
 }
 
+static void removeAllOutEdgesFrom(Node *a) {
+    set_destroy(a->edges);
+    a->edges = NULL;
+}
+
 /*  Mata el estado previo de la variable 'a' */
 static void kill_var_state(Graph *g, Node *a) {
     set_destroy(a->references);         /* borra {&...} en 'a' */
     a->references = NULL;
     removeAllInEdgesTo(g, a);   /* quita todas las x->a */
+    removeAllOutEdgesFrom(a);   /* quita todas las a -> x*/
      /* Pensar si agregar:
        clearPcur(a);
        invalidateCachesFor(a);
@@ -47,16 +53,16 @@ void constraintSimple(Graph **g, char *dst_a, char *src_b) {
     printf("[Operator] Simple: %s ⊇ %s\n", dst_a, src_b);
 }
 
-
-// Complex 1: l ⊇ *r
+// Complex 1: l ⊇ *r (l = *r)
 void constraintComplex1(Graph **g, char *l_name, char *r_name) {
     Node *l = ensure_node(g, l_name);
     Node *r = ensure_node(g, r_name);
+    kill_var_state(*g, l);
     addConstraint(&listComplex1, l, r);
     printf("[Operator] Complex 1 Constraint: %s ⊇ *%s\n", l_name, r_name);
 }
 
-// Complex 2: *l ⊇ r
+// Complex 2: *l ⊇ r  (*l = r)
 void constraintComplex2 (Graph **g, char *l_name, char *r_name) {
     Node *l = ensure_node(g, l_name);
     Node *r = ensure_node(g, r_name);

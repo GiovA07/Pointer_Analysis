@@ -34,18 +34,6 @@ void wave_Propagation(Graph **G) {
     } while (changed == true);
 }
 
-/*Permite concatenar dos strings (La utilizo para concatenar los nombres de los nodos)*/
-static char *str_concat(char *a, char *b) {
-    int la = strlen(a);
-    int lb = strlen(b);
-    char *out = (char *)malloc(la + lb + 1);  // +1 para el '\0'
-    if (!out) return NULL;
-    memcpy(out, a, la);
-    memcpy(out + la, b, lb);
-    out[la + lb] = '\0';
-    return out;
-}
-
 static void remap_constraints_after_unify(Node *oldw, Node *rep) {
     // Complex 1: l ⊇ *r
     constraints_remap_nodes(listComplex1, oldw, rep);
@@ -64,6 +52,13 @@ static void mergeNodes(Node *target, Node *source) {
     set_union_inplace(&Pold(target), Pold(source));
 }
 
+/* Las edges salientes de source en target */
+static void out_edges_in_target(Node *target, Node *source) {
+    for (Set *e = source->edges; e; e = e->next) {
+        addEdgeInNode(target, e->node);
+    }
+}
+
 /*
  * unify(g, v, w)
  * ----------------------------------------------------------------------------
@@ -79,16 +74,13 @@ static void mergeNodes(Node *target, Node *source) {
 static void unify(Graph **G, Node *target, Node *source) {
     if (target == source) return;
 
-    char *merged_name = str_concat(target->name, source->name);
-
+    // 1) Reencaminar edges entrantes y referencias que apuntaban a source
     for(Graph *curGraph = *G; curGraph; curGraph = curGraph->next) {
         Node *curNode = curGraph->node;
-        // Si currentNode tiene una arista hacia w, reemplazarla por una arista hacia v.
         if(curNode && set_existElem(curNode->edges, source)) {
             addEdgeInNode(curNode, target);
             removeEdgeInNode(curNode, source);
         }
-        // redirigir referencias a w por rep
         if(curNode && set_existElem(Pcur(curNode), source)) {
             removeReference(curNode, source);
             addReference(curNode, target);
@@ -97,18 +89,16 @@ static void unify(Graph **G, Node *target, Node *source) {
 
     // 2) Remapear constraints complejas (L/R y cache si hace falta)
     remap_constraints_after_unify(source,target);
-    //3) Eliminar posible autociclo generado
+    // 3) las edges salientes de sources, agregarlas a target
+    out_edges_in_target(target,source);
+    //4) Eliminar posible autociclo generado
     removeEdgeInNode(target, target);
-    // 4) Fusionar info (Pcur/Pold, etc.)
+    // 5) Fusionar info (Pcur/Pold, etc.)
     mergeNodes(target, source);
 
-    // — renombrar el representante —
-    free(target->name);
-    target->name = merged_name;
-
-    // eliminar w del grafo
+    //6) eliminar w del grafo
     removeNode(G, source);
-    /***** DESTRUIR EL NODE al al haber removido todo deberia liberar la memoria dle node *****/
+    /** TODO: DESTRUIR EL NODE al al haber removido todo deberia liberar la memoria dle node *****/
 
 }
 
