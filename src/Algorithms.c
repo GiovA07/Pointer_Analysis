@@ -30,15 +30,8 @@ void wave_Propagation(Graph **G) {
         changed = false;
         collapseSCC(G);
         perform_Wave_Propagation();
-        changed = add_new_edges();
+        changed = add_new_edges(G);
     } while (changed == true);
-}
-
-static void remap_constraints_after_unify(Node *oldw, Node *rep) {
-    // Complex 1: l ⊇ *r
-    constraints_remap_nodes(listComplex1, oldw, rep);
-    // Complex 2: *l ⊇ r
-    constraints_remap_nodes(listComplex2, oldw, rep);
 }
 
 /*
@@ -77,18 +70,25 @@ static void unify(Graph **G, Node *target, Node *source) {
     // 1) Reencaminar edges entrantes y referencias que apuntaban a source
     for(Graph *curGraph = *G; curGraph; curGraph = curGraph->next) {
         Node *curNode = curGraph->node;
+        // edges entrantes: x->source  => x->target
         if(curNode && set_existElem(curNode->edges, source)) {
             addEdgeInNode(curNode, target);
             removeEdgeInNode(curNode, source);
         }
+        // Pcur(x): si apunta a source, redirigir a target
         if(curNode && set_existElem(Pcur(curNode), source)) {
             removeReference(curNode, source);
             addReference(curNode, target);
         }
+        // Pold(x): si contiene source, redirigir a target
+        if (set_existElem(Pold(curNode), source)) {
+            set_deleteElem(&Pold(curNode), source);
+            set_addElem(&Pold(curNode), target);
+        }
     }
-
     // 2) Remapear constraints complejas (L/R y cache si hace falta)
-    remap_constraints_after_unify(source,target);
+    constraints_remap_unify(listComplex1, source, target);
+    constraints_remap_unify(listComplex2, source, target);
     // 3) las edges salientes de sources, agregarlas a target
     out_edges_in_target(target,source);
     //4) Eliminar posible autociclo generado
@@ -206,11 +206,14 @@ void visitNode(Node* v, int *I) {
 
 // Propaga el conjunto pdif desde v a w
 static void propagationTo(Node *w, Set *pdif) {
-    Set *oldRefs = Pcur(w);
-    Pcur(w) = set_union(oldRefs, pdif);
-    /** REVIEW:	ver si es correcto clonar el pold aca*/
-    Pold(w) = set_clone(Pcur(w));
-    set_destroy(oldRefs);
+    set_union_inplace(&Pcur(w), pdif);
+
+    // Set *oldRefs = Pcur(w);
+    // Pcur(w) = set_union(oldRefs, pdif);
+    // /** REVIEW:	ver si es correcto clonar el pold aca*/
+    // set_destroy(Pold(w));
+    // Pold(w) = set_clone(Pcur(w));
+    // set_destroy(oldRefs);
 }
 
 
@@ -223,6 +226,7 @@ static void propagationTo(Node *w, Set *pdif) {
 void perform_Wave_Propagation() {
 
     while(!isEmpty(T)) {
+        // v <-- pop node on top of T
         Node *v = top(T);
         pop(T);
         //Pdif ← Pcur(v) − Pold(v)
@@ -240,6 +244,7 @@ void perform_Wave_Propagation() {
         pdif = NULL;
     }
 }
+
 
 /*
  * Algorithm 5: add_new_edges
@@ -259,13 +264,15 @@ void perform_Wave_Propagation() {
  *   Devolver un booleano para poder hacer el ciclo en el algorithm 1.
  */
 
-bool add_new_edges() {
+bool add_new_edges(Graph **G) {
     bool changed = false;
 
     // Complex 1:  l ⊇ *r
     for (ListConstraint *curCons = listComplex1; curCons; curCons = curCons->next) {
-        Node *l             = constraint_getL(curCons);
-        Node *r             = constraint_getR(curCons);
+        char *lname             = constraint_getL(curCons);
+        char *rname             = constraint_getR(curCons);
+        Node *l = findNode(*G, (char*)lname)->node;
+        Node *r = findNode(*G, (char*)rname)->node;
 
         //Pnew ← Pcur(r) − Pcache(c)
         Set *pNew           = set_difference(Pcur(r), curCons->pcache);
@@ -288,8 +295,10 @@ bool add_new_edges() {
     
     //Complex 2
     for (ListConstraint *curCons = listComplex2; curCons; curCons = curCons->next) {
-        Node *l = constraint_getL(curCons);
-        Node *r = constraint_getR(curCons);
+        char *lname = constraint_getL(curCons);
+        char *rname = constraint_getR(curCons);
+        Node *l = findNode(*G, (char*)lname)->node;
+        Node *r = findNode(*G, (char*)rname)->node;
 
         Set *pNew = set_difference(Pcur(l), curCons->pcache);
         set_union_inplace(&curCons->pcache, pNew);

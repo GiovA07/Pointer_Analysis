@@ -29,6 +29,8 @@ static void kill_var_state(Graph *g, Node *a) {
     a->references = NULL;
     removeAllInEdgesTo(g, a);   /* quita todas las x->a */
     removeAllOutEdgesFrom(a);   /* quita todas las a -> x*/
+    set_destroy(Pold(a));
+    Pold(a) = NULL;
      /* Pensar si agregar:
        clearPcur(a);
        invalidateCachesFor(a);
@@ -58,7 +60,7 @@ void constraintComplex1(Graph **g, char *l_name, char *r_name) {
     Node *l = ensure_node(g, l_name);
     Node *r = ensure_node(g, r_name);
     kill_var_state(*g, l);
-    addConstraint(&listComplex1, l, r);
+    addConstraint(&listComplex1, l_name, r_name);
     printf("[Operator] Complex 1 Constraint: %s ⊇ *%s\n", l_name, r_name);
 }
 
@@ -66,6 +68,6 @@ void constraintComplex1(Graph **g, char *l_name, char *r_name) {
 void constraintComplex2 (Graph **g, char *l_name, char *r_name) {
     Node *l = ensure_node(g, l_name);
     Node *r = ensure_node(g, r_name);
-    addConstraint(&listComplex2, l, r);
+    addConstraint(&listComplex2, l_name, r_name);
     printf("[Operator] Complex 2 Constraint: *%s ⊇ %s\n", l_name, r_name);
 }
