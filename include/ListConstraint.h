@@ -5,26 +5,33 @@
 #include "Set.h"
 
 typedef struct ListConstraint {
-    Node *superset;                     // 'a' en a ⊇ *b o *a ⊇ b
-    Node *dereferenced;                 // 'b' en *b o b
+    char *l;                     // 'a' en a ⊇ *b o *a ⊇ b
+    char *r;                     // 'b' en *b o b
     Set *pcache;                        // conjunto cache de nodos ya procesados
     struct ListConstraint *next;        // Siguiente restriccion compleja
 } ListConstraint;
 
 
-extern ListConstraint *listComplex1;  // a ⊇ *b
-extern ListConstraint *listComplex2;  // *a ⊇ b
+extern ListConstraint *listComplex1;  // l ⊇ *r
+extern ListConstraint *listComplex2;  // *l ⊇ r
 
 
-void addConstraint(ListConstraint **list, Node *a, Node *b);
-Node* constraint_getL (ListConstraint *list);
-void constraint_setL(ListConstraint *list, Node *rep);
-Node* constraint_getR (ListConstraint *list);
-void constraint_setR(ListConstraint *list, Node *rep);
+void addConstraint(ListConstraint **list, char *l_name, char *r_name);
+
+char* constraint_getL (ListConstraint *list);
+char* constraint_getR (ListConstraint *list);
+
+void constraint_setL(ListConstraint *list, char *rep);
+void constraint_setR(ListConstraint *list, char *rep);
+
 Set* constraint_getCache(ListConstraint *list);
 void constraint_setCache(ListConstraint *list, Set *newCache);
 
-void constraints_remap_nodes(ListConstraint *list, Node *oldw, Node *rep);
+
+void constraint_resetCache(ListConstraint *c);
+void constraints_reset_all_caches(ListConstraint *list);
+
+void constraints_remap_unify(ListConstraint *list, Node *oldw, Node *rep);
 
 void printConstraintComplex1(ListConstraint *list);
 void printConstraintComplex2(ListConstraint *list);

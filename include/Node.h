@@ -8,6 +8,10 @@
 
 #define MAX_NODES 10
 
+/* MACROS */
+#define Pcur(n) ((n)->references)
+#define Pold(n) ((n)->pold)
+
 // Estructura de un nodo del grafo
 typedef struct Node {
     char* name;

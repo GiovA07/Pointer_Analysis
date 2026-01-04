@@ -118,13 +118,14 @@ void eval_seq(OpSeq *seq, struct Graph **G){
             Graph *base = *G;
             Graph *gThen = graph_clone(base);
             eval_seq(op->then_seq, &gThen);
-            wave_Propagation(&gThen);
+            // wave_Propagation(&gThen); AHORA HAGO WAVE PROPAGATION EN CADA SENTENCIA, por ende seria al pedo realizar este.
             if(op->else_seq) {
                 printf("[Operator] ELSE\n");
                 //Rama del ELSE
                 Graph *gElse = graph_clone(base);
                 eval_seq(op->else_seq, &gElse);
-                wave_Propagation(&gElse);
+
+                // wave_Propagation(&gElse);  AHORA HAGO WAVE PROPAGATION EN CADA SENTENCIA, por ende seria al pedo realizar este.
 
                 Graph *J = graph_join(gThen, gElse);
                 *G = J;
@@ -144,8 +145,8 @@ void eval_seq(OpSeq *seq, struct Graph **G){
             int maxwhile = 10;
             while (maxwhile > 0) {
                 Graph *prev = graph_clone(gaux);
-
                 eval_seq(op->then_seq, &gaux);
+                
                 Graph *join = graph_join(prev, gaux);
                 if (graphs_equal(join, prev)) {
                     *G = join;
@@ -167,5 +168,5 @@ void eval_seq(OpSeq *seq, struct Graph **G){
         }
     }
   }
-  wave_Propagation(G);
+    wave_Propagation(G);
 }

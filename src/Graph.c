@@ -175,46 +175,33 @@ static Node* ensure_node_in(Graph **J, char *name) {
     return n;
 }
 
+static void join_merge_side(Graph **J, Graph *side) {
+    // asegurar nodos en el join
+    for (Graph *g = side; g; g = g->next) {
+        ensure_node_in(J, g->node->name);
+    }
+
+    // copiar refs + edges del Grafo al del JOIN
+    for (Graph *g = side; g; g = g->next) {
+        Node *uJ = ensure_node_in(J, g->node->name);
+
+        for (Set *r = g->node->references; r; r = r->next) {
+            Node *vJ = ensure_node_in(J, r->node->name);
+            addReference(uJ, vJ);
+        }
+        for (Set *e = g->node->edges; e; e = e->next) {
+            Node *vJ = ensure_node_in(J, e->node->name);
+            addEdgeInNode(uJ, vJ);
+        }
+    }
+}
+
 Graph* graph_join(Graph *a, Graph *b) {
     Graph *j = NULL;
+    join_merge_side(&j, a);
+    join_merge_side(&j, b);
 
-    // 1) Asegurar todos los nodos de A y B en el join
-    for (Graph *ga = a; ga; ga = ga->next) {
-        ensure_node_in(&j, ga->node->name);
-    }
-    for (Graph *gb = b; gb; gb = gb->next) {
-        ensure_node_in(&j, gb->node->name);
-    }
-
-    // 2) Copiar referencias y aristas de A al grafo de join
-    for (Graph *ga = a; ga; ga = ga->next) {
-        Node *na_j = ensure_node_in(&j, ga->node->name);
-        /* referencias (Pcur) */
-        for (Set *r = ga->node->references; r; r = r->next) {
-            Node *v_j = ensure_node_in(&j, r->node->name);
-            addReference(na_j, v_j);
-        }
-        /* aristas */
-        for (Set *e = ga->node->edges; e; e = e->next) {
-            Node *v_j = ensure_node_in(&j, e->node->name);
-            addEdgeInNode(na_j, v_j);
-        }
-    }
-
-    // 3) Copiar referencias y aristas de B al grafo de join
-    for (Graph *gb = b; gb; gb = gb->next) {
-        Node *nb_j = ensure_node_in(&j, gb->node->name);
-        for (Set *r = gb->node->references; r; r = r->next) {
-            Node *v_j = ensure_node_in(&j, r->node->name);
-            addReference(nb_j, v_j);
-        }
-        for (Set *e = gb->node->edges; e; e = e->next) {
-            Node *v_j = ensure_node_in(&j, e->node->name);
-            addEdgeInNode(nb_j, v_j);
-        }
-    }
-
-    // 4) ver si hacer el Pold(j) := Pcur(j) para arrancar limpio el proximo WP
+    // TODO: Podriamos ver si hacer la copia de Pold
 
     return j;
 }

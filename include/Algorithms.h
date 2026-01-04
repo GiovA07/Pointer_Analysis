@@ -12,10 +12,6 @@
 #include "../include/Set.h"
 #include "../include/Stack.h"
 
-/* MACROS */
-#define Pcur(n) ((n)->references)
-#define Pold(n) ((n)->pold)
-
 void wave_Propagation(Graph **G);                       //Algorithm 1
 void collapseSCC(Graph **G);                            //Algorithm 2
 void visitNode(Node* v, int *I);                        //Algorithm 3
