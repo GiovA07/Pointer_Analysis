@@ -167,6 +167,6 @@ void eval_seq(OpSeq *seq, struct Graph **G){
             break;
         }
     }
-  }
     wave_Propagation(G);
+  }
 }

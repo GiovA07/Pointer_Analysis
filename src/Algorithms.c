@@ -67,25 +67,8 @@ static void out_edges_in_target(Node *target, Node *source) {
 static void unify(Graph **G, Node *target, Node *source) {
     if (target == source) return;
 
-    // 1) Reencaminar edges entrantes y referencias que apuntaban a source
-    for(Graph *curGraph = *G; curGraph; curGraph = curGraph->next) {
-        Node *curNode = curGraph->node;
-        // edges entrantes: x->source  => x->target
-        if(curNode && set_existElem(curNode->edges, source)) {
-            addEdgeInNode(curNode, target);
-            removeEdgeInNode(curNode, source);
-        }
-        // Pcur(x): si apunta a source, redirigir a target
-        if(curNode && set_existElem(Pcur(curNode), source)) {
-            removeReference(curNode, source);
-            addReference(curNode, target);
-        }
-        // Pold(x): si contiene source, redirigir a target
-        if (set_existElem(Pold(curNode), source)) {
-            set_deleteElem(&Pold(curNode), source);
-            set_addElem(&Pold(curNode), target);
-        }
-    }
+    unify_node_to_target(*G, target, source);
+
     // 2) Remapear constraints complejas (L/R y cache si hace falta)
     constraints_remap_unify(listComplex1, source, target);
     constraints_remap_unify(listComplex2, source, target);
@@ -95,6 +78,7 @@ static void unify(Graph **G, Node *target, Node *source) {
     removeEdgeInNode(target, target);
     // 5) Fusionar info (Pcur/Pold, etc.)
     mergeNodes(target, source);
+    node_alias_merge(target, source);
 
     //6) eliminar w del grafo
     removeNode(G, source);
@@ -271,8 +255,8 @@ bool add_new_edges(Graph **G) {
     for (ListConstraint *curCons = listComplex1; curCons; curCons = curCons->next) {
         char *lname             = constraint_getL(curCons);
         char *rname             = constraint_getR(curCons);
-        Node *l = findNode(*G, (char*)lname)->node;
-        Node *r = findNode(*G, (char*)rname)->node;
+        Node *l = findNodeResolved(*G, (char*)lname)->node;
+        Node *r = findNodeResolved(*G, (char*)rname)->node;
 
         //Pnew ← Pcur(r) − Pcache(c)
         Set *pNew           = set_difference(Pcur(r), curCons->pcache);
@@ -297,8 +281,8 @@ bool add_new_edges(Graph **G) {
     for (ListConstraint *curCons = listComplex2; curCons; curCons = curCons->next) {
         char *lname = constraint_getL(curCons);
         char *rname = constraint_getR(curCons);
-        Node *l = findNode(*G, (char*)lname)->node;
-        Node *r = findNode(*G, (char*)rname)->node;
+        Node *l = findNodeResolved(*G, (char*)lname)->node;
+        Node *r = findNodeResolved(*G, (char*)rname)->node;
 
         Set *pNew = set_difference(Pcur(l), curCons->pcache);
         set_union_inplace(&curCons->pcache, pNew);

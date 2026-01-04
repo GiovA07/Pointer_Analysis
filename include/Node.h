@@ -12,13 +12,19 @@
 #define Pcur(n) ((n)->references)
 #define Pold(n) ((n)->pold)
 
+typedef struct Alias {
+    char *name;
+    struct Alias *next;
+} Alias;
+
 // Estructura de un nodo del grafo
 typedef struct Node {
     char* name;
-    struct Set* references;    // Pcur(v): el conjunto “actual” de referencias
-    struct Set* pold;          // Pold(v): lo que ya hemos enviado en la ultima iteracion
-    struct Set* edges;         // aristas del grafo
-
+    Set* references;    // Pcur(v): el conjunto “actual” de referencias
+    Set* pold;          // Pold(v): lo que ya hemos enviado en la ultima iteracion
+    Set* edges;         // aristas del grafo
+    
+    Alias *aliases;
 } Node;
 
 //set-gets
@@ -26,14 +32,22 @@ void node_setReferences(Node *node, Set *src);
 
 // Funciones para manejar los nodos
 Node* createNode(char *name);
+
 void addReference(Node *node, Node *ref);
 void removeReference(Node *node, Node *ref);
-void clean_reference(Node *node);
+
 void addEdgeInNode(Node *node, Node *edge);
 void removeEdgeInNode(Node *node, Node *ref);
 int existEdgeInNode(Node *node, Node *ref);
 
+int  node_has_alias(Node *n, char *name);
+void node_alias_add(Node *n, char *name);
+void node_alias_merge(Node *target, Node *source);
+
+int aliases_equal(Alias *a, Alias *b);
+
 void printReferences(Node *node);
 void printEdges(Node *node);
-#endif
 
+void node_destroy(Node *n);
+#endif
