@@ -1,9 +1,22 @@
 A = &X;
 B = &Y;
-
-while (cond) {
+A = L;
+C = B;
+if(cond){
   A = B;
+  K = U;
+} else {
+  U = K;
   B = A;
 }
 
-D = *A; 
+if(cond) {
+  U = A;
+} else {
+  A = U;
+}
+V = U;
+P = B;
+A = D;
+U = J;
+O = P;

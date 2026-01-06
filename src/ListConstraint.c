@@ -104,3 +104,14 @@ void printConstraintComplex2(ListConstraint *list) {
     for ( ; list; list = list->next)
         printf("*%s ⊇ %s\n", list->l, list->r);
 }
+
+void constraints_destroy(ListConstraint *list) {
+    while (list) {
+        ListConstraint *nx = list->next;
+        free(list->l);
+        free(list->r);
+        set_destroy(list->pcache);
+        free(list);
+        list = nx;
+    }
+}

@@ -105,13 +105,38 @@ void opSeq_destroy(OpSeq *s){
 }
 
 
+static void wp_with_reset(Graph **G) {
+    // invalidamos las caches ya que se ejecutara wave en cada sentencia
+    constraints_reset_all_caches(listComplex1);
+    constraints_reset_all_caches(listComplex2);
+
+    wave_Propagation(G);
+}
+
+
 void eval_seq(OpSeq *seq, struct Graph **G){
   for(Op *op=seq->head; op; op=op->next){
     switch(op->kind){
-        case OP_BASE:   constraitBase(G,   op->a, op->b); break;
-        case OP_SIMPLE: constraintSimple(G, op->a, op->b); break;
-        case OP_C1:     constraintComplex1(G, op->a, op->b); break;
-        case OP_C2:     constraintComplex2(G, op->a, op->b); break;
+        case OP_BASE: {
+            constraitBase(G, op->a, op->b);
+            wp_with_reset(G);
+            break;
+        }
+        case OP_SIMPLE: { 
+            constraintSimple(G, op->a, op->b);
+            wp_with_reset(G);
+            break;
+        }
+        case OP_C1: {
+            constraintComplex1(G, op->a, op->b);
+            wp_with_reset(G);
+            break;
+        }
+        case OP_C2: {
+            constraintComplex2(G, op->a, op->b);
+            wp_with_reset(G);
+            break;
+        }
 
         case OP_IF: {
             printf("[Operator] IF\n");
@@ -128,11 +153,13 @@ void eval_seq(OpSeq *seq, struct Graph **G){
                 // wave_Propagation(&gElse);  AHORA HAGO WAVE PROPAGATION EN CADA SENTENCIA, por ende seria al pedo realizar este.
 
                 Graph *J = graph_join(gThen, gElse);
+                wp_with_reset(&J);
                 *G = J;
                 /*TODO: destruir gthen/gelse*/
             } else {
                 // if sin else
                 Graph *J = graph_join(base, gThen);
+                wp_with_reset(&J);
                 *G = J;
                 /*TODO: destruir gthen*/
             }
@@ -148,6 +175,7 @@ void eval_seq(OpSeq *seq, struct Graph **G){
                 eval_seq(op->then_seq, &gaux);
                 
                 Graph *join = graph_join(prev, gaux);
+                wp_with_reset(&join);
                 if (graphs_equal(join, prev)) {
                     *G = join;
                     // TODO: graph_destroy(prev);
@@ -168,5 +196,4 @@ void eval_seq(OpSeq *seq, struct Graph **G){
         }
     }
   }
-    wave_Propagation(G);
 }
