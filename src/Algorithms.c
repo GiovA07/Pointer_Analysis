@@ -92,6 +92,7 @@ static void unify(Graph **G, Node *target, Node *source) {
 
     //6) eliminar w del grafo
     removeNode(G, source);
+    node_destroy(source);
     /** TODO: DESTRUIR EL NODE al al haber removido todo deberia liberar la memoria dle node *****/
 
 }

@@ -17,5 +17,6 @@ if(cond) {
 }
 V = U;
 P = B;
-D = *A; 
+A = D;
+U = J;
 O = P;

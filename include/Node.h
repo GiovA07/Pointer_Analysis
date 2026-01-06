@@ -46,6 +46,9 @@ void node_alias_merge(Node *target, Node *source);
 
 int aliases_equal(Alias *a, Alias *b);
 
+int  node_isalias_grouped(Node *n);
+void node_alias_remove(Node *n, char *name);
+
 void printReferences(Node *node);
 void printEdges(Node *node);
 

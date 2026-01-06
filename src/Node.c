@@ -68,6 +68,8 @@ void node_alias_add(Node *n, char *name){
     n->aliases = x;
 }
 
+/*TODO: ver si aca puedo no eliminar el alias, 
+    ya que despues hago un destroy del nodo source y eso lo elimina*/
 void node_alias_merge(Node *target, Node *source){
     if(!target || !source || target==source) return;
 
@@ -105,6 +107,36 @@ int aliases_equal(Alias *a, Alias *b) {
     return 1;
 }
 
+
+ static int alias_count(Alias *a){
+    int k=0;
+    for(; a; a=a->next) k++;
+    return k;
+}
+
+int node_isalias_grouped(Node *n){
+    // grouped si tiene algún alias distinto de su name
+    if(!n) return 0;
+    int cnt = alias_count(n->aliases);
+    // si aliases incluye el name, entonces el grupo deberia tiener >=2
+    return cnt >= 2;
+}
+
+void node_alias_remove(Node *n, char *name){
+    if(!n || !name) return;
+    Alias *prev=NULL, *cur=n->aliases;
+    while(cur){
+        if(strcmp(cur->name,name)==0){
+            if(!prev) n->aliases = cur->next;
+            else prev->next = cur->next;
+            free(cur->name);
+            free(cur);
+            return;
+        }
+        prev=cur;
+        cur=cur->next;
+    }
+}
 
 // Lista de los nodos a los que apunta.
 void printReferences(Node *node) {
