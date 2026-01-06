@@ -16,6 +16,15 @@ Stack *T;
 // contador global para numerar nodos (D)
 int I;
 
+
+static void reset_all_pold(Graph *G){
+    for (Graph *g = G; g; g = g->next){
+        Node *v = g->node;
+        set_destroy(Pold(v));
+        Pold(v) = NULL; // o createSet()
+    }
+}
+
 /*
  * Algorithm 1: Wave Propagation
  * ----------------------------------------------------------------------------
@@ -29,6 +38,7 @@ void wave_Propagation(Graph **G) {
     do {
         changed = false;
         collapseSCC(G);
+        reset_all_pold(*G);
         perform_Wave_Propagation();
         changed = add_new_edges(G);
     } while (changed == true);

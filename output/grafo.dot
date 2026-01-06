@@ -12,7 +12,7 @@ A [label="A {Y}"];
 P -> O;
 L -> A;
 Y -> D;
-A -> V;
 A -> P;
+A -> V;
 A -> C;
 }

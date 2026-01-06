@@ -56,6 +56,7 @@ void constraintSimple(Graph **g, char *dst_a, char *src_b) {
 
     Graph *bGraph = findNode(*g, b->name);
     addEdge(bGraph, a);                 /* crea la arista b -> a */
+    // set_union_inplace(&Pcur(a), Pold(b)); 
     printf("[Operator] Simple: %s ⊇ %s\n", dst_a, src_b);
 }
 
