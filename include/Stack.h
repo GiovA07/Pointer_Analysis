@@ -3,10 +3,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <stdbool.h>
 
-#include "./Node.h"
-
+/* Como no estoy utilizando los campos de node, no necesito saberlos, ni que tamaño tienen*/
+typedef struct Node Node;
 
 typedef struct StackNode {
     Node *node;
@@ -18,11 +18,11 @@ typedef struct Stack {
 } Stack;
 
 // Funciones de la pila
-Stack* createStack();
-bool push(Stack *stack, Node *node);
-void pop(Stack *stack);
-Node* top(Stack *stack);
-bool isEmpty(Stack *stack);
-void destroyStack(Stack *stack);
+Stack* stack_create();
+bool stack_push(Stack *stack, Node *node);
+Node* stack_top(Stack *stack);
+bool stack_pop(Stack *stack);
+bool stack_isEmpty(Stack *stack);
+void stack_destroy(Stack **stack);
 
 #endif // STACK_H

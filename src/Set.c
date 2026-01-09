@@ -1,8 +1,7 @@
 #include "../include/Set.h"
 #include "../include/Node.h" 
-Set* createSet(){
-    return NULL;
-}
+
+Set* createSet(){ return NULL; }
 
 bool set_existElem(Set *set, Node *node) {
     for (Set *cur = set; cur; cur = cur->next)
@@ -11,9 +10,11 @@ bool set_existElem(Set *set, Node *node) {
 }
 
 bool set_addElem(Set **set, Node *node) {
-    if(set_existElem(*set, node)) return false;
-    
+    if (!set || !node) return false;
+    if (set_existElem(*set, node)) return false;
+
     Set *newElem = (Set*)malloc(sizeof(Set));
+    if (!newElem) return false;
     newElem->node = node;
     newElem->next = *set;
     *set = newElem;
@@ -21,21 +22,22 @@ bool set_addElem(Set **set, Node *node) {
 }
 
 void set_deleteElem(Set **set, Node *node) {
-    if(!set_existElem(*set, node)) return ;
+    if (!set || !*set) return;
 
     Set *prev = NULL;
-    Set* currentElem = *set;
-    while (currentElem) {
-        if(currentElem->node == node) {
+    Set* cur = *set;
+
+    while (cur) {
+        if(cur->node == node) {
             if (prev == NULL)
-                *set = currentElem->next;
+                *set = cur->next;
             else
-                prev->next = currentElem->next;
-            //Luego revisar si hacer free del eliminado
+                prev->next = cur->next;
+            free(cur);
             return;
         }
-        prev = currentElem;
-        currentElem = currentElem->next;
+        prev = cur;
+        cur = cur->next;
     }
 }
 
@@ -81,13 +83,15 @@ Set* set_clone(Set *src) {
     return clone;
 }
 
-void set_destroy(Set *s) {
-    while (s) {
-        Set *next = s->next;
-        free(s);
-        s = next;
+void set_destroy(Set **s) {
+    if (!s) return;
+    Set *s_cur = *s;
+    while (s_cur) {
+        Set *next = s_cur->next;
+        free(s_cur);
+        s_cur = next;
     }
-    s = NULL;
+    *s = NULL;
 }
 
 bool set_empty(Set *s) { return s == NULL; }

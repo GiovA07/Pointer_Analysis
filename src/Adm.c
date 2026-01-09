@@ -1,11 +1,12 @@
 #include "../include/Adm.h"
 
 /* Busca el nodo por nombre; si no existe, lo crea y lo agrega al grafo. */
+// Si existe (por name o alias), devolvemos el representante y registramos 'name' como alias.
 static Node* ensure_node(Graph **g, char *name) {
-    Graph *aux = findNodeResolved(*g, name);
-    if (aux) {
-        node_alias_add(aux->node, name);
-        return aux->node;
+    Graph *existing = findNodeResolved(*g, name);
+    if (existing) {
+        node_alias_add(existing->node, name);
+        return existing->node;
     } 
     Node *n = createNode(name);
     addNode(g, n);
@@ -21,17 +22,16 @@ static void removeAllInEdgesTo(Graph *g, Node *a) {
 }
 
 static void removeAllOutEdgesFrom(Node *a) {
-    set_destroy(a->edges);
-    a->edges = NULL;
+    set_destroy(&a->edges);
 }
 
 /*  Mata el estado previo de la variable 'a' */
 static void kill_var_state(Graph *g, Node *a) {
-    set_destroy(a->references);         /* borra {&...} en 'a' */
+    set_destroy(&a->references);         /* borra {&...} en 'a' */
     a->references = NULL;
     removeAllInEdgesTo(g, a);           /* quita todas las x->a */
     removeAllOutEdgesFrom(a);           /* quita todas las a -> x*/
-    set_destroy(Pold(a));
+    set_destroy(&Pold(a));
     Pold(a) = NULL;
      /* Pensar si agregar:
        clearPcur(a);
@@ -88,10 +88,11 @@ void constraintSimple(Graph **g, char *dst_a, char *src_b) {
     Node *a = ensure_node(g, dst_a);
     a = delete_group_alias(g, a, dst_a);
     Node *b = ensure_node(g, src_b);
-    
+
     kill_var_state(*g,a);
 
-    Graph *bGraph = findNode(*g, b->name);
+    Graph *bGraph = findNodeResolved(*g, b->name);
+    if (!bGraph) return;
     addEdge(bGraph, a);                 /* crea la arista b -> a */
     // set_union_inplace(&Pcur(a), Pold(b)); 
     printf("[Operator] Simple: %s ⊇ %s\n", dst_a, src_b);

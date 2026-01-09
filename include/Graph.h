@@ -16,7 +16,6 @@ typedef struct Graph{
 
 // Funciones para manejar el grafo
 Graph* findNode(Graph *g, char *name);
-Graph* nextNode(Graph *g);
 
 void addNode(Graph **g, Node *node);
 void removeNode(Graph **g, Node *node);

@@ -31,7 +31,7 @@ void constraint_setCache(ListConstraint *list, Set *newCache);
 void constraint_resetCache(ListConstraint *c);
 void constraints_reset_all_caches(ListConstraint *list);
 
-void constraints_remap_unify(ListConstraint *list, Node *oldw, Node *rep);
+void constraints_remap_cache(ListConstraint *list, Node *oldw, Node *rep);
 
 void printConstraintComplex1(ListConstraint *list);
 void printConstraintComplex2(ListConstraint *list);
