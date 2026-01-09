@@ -19,7 +19,7 @@ Node* createNode(char *name) {
 void node_setReferences(Node *node, Set *src) {
     Set *oldSet = node->references;
     node->references = src;
-    set_destroy(oldSet);
+    set_destroy(&oldSet);
 }
 
 /* Agrega una referencia (points-to) si no existe */
@@ -163,9 +163,9 @@ void node_destroy(Node *n) {
 
     free(n->name);
 
-    set_destroy(n->references);
-    set_destroy(n->edges);
-    set_destroy(n->pold);
+    set_destroy(&n->references);
+    set_destroy(&n->edges);
+    set_destroy(&n->pold);
 
     Alias *a = n->aliases;
     while (a) {

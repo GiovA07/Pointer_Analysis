@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../include/Graph.h"
 
 //Add List Constrraint
 void addConstraint(ListConstraint **list, char *l_name, char *r_name) {
@@ -44,12 +43,12 @@ void constraint_setCache(ListConstraint *list, Set *newCache) {
     Set *old = list->pcache;
     list->pcache = newCache;
     if (old && old != newCache) 
-        set_destroy(old);
+        set_destroy(&old);
 }
 
 
 void constraint_resetCache(ListConstraint *c) {
-    set_destroy(c->pcache);
+    set_destroy(&c->pcache);
     c->pcache = createSet();
 }
 
@@ -59,37 +58,15 @@ void constraints_reset_all_caches(ListConstraint *list) {
     }
 }
 
-void constraints_remap_unify(ListConstraint *list, Node *oldw, Node *rep) {
-    char *oldname = oldw->name;
-    char *repname = rep->name;
-
+void constraints_remap_cache(ListConstraint *list, Node *oldw, Node *rep) {
     for (ListConstraint *c = list; c; c = c->next) {
-
-        // 1) remapear nombres L/R
-        if (strcmp(c->l, oldname) == 0) constraint_setL(c, repname);
-        if (strcmp(c->r, oldname) == 0) constraint_setR(c, repname);
-
-        // 2) remapear pcache (sigue siendo Set de Node*)
+        // 1) remapear pcache (sigue siendo Set de Node*)
         if (set_existElem(c->pcache, oldw)) {
             set_deleteElem(&c->pcache, oldw);
             set_addElem(&c->pcache, rep);
         }
     }
 }
-
-// void constraints_remap_nodes(ListConstraint *list, Node *oldw, Node *rep) {
-//     for (ListConstraint *c = list; c; c = c->next) {
-//         if (c->superset     == oldw) c->superset     = rep;
-//         if (c->dereferenced == oldw) c->dereferenced = rep;
-//         if (set_existElem(c->pcache, oldw)) {
-//             set_deleteElem(&c->pcache, oldw);
-//             set_addElem(&c->pcache, rep);
-//         }
-//     }
-
-//     // Remapear el cache (reemplazar oldw por rep si estuviera)
-//     //no es necesario por ahora
-// }
 
 // a ⊇ ∗b
 void printConstraintComplex1(ListConstraint *list) {
@@ -110,7 +87,7 @@ void constraints_destroy(ListConstraint *list) {
         ListConstraint *nx = list->next;
         free(list->l);
         free(list->r);
-        set_destroy(list->pcache);
+        set_destroy(&list->pcache);
         free(list);
         list = nx;
     }

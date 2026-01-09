@@ -1,7 +1,6 @@
 #ifndef SET_H
 #define SET_H
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -23,7 +22,7 @@ Set* set_difference(Set *current, Set *old);
 Set* set_union(Set *set1, Set *set2);
 bool set_union_inplace(Set **dst, Set *src);
 Set* set_clone(Set *src);
-void set_destroy(Set *s);
+void set_destroy(Set **s);
 
 bool set_equals(Set *a, Set *b);
 void set_print(Set *s);

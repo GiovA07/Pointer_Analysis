@@ -28,8 +28,8 @@ typedef struct RMap {
 DMap* initDMap(Graph* graph);
 RMap* initRMap(Graph* graph);
 
-void  destroyDMap(DMap* d);
-void  destroyRMap(RMap* r);
+void  destroyDMap(DMap **d);
+void  destroyRMap(RMap **r);
 
 
 int getDValue(DMap* dMap, Node* node);

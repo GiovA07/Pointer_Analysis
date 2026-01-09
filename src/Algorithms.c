@@ -20,9 +20,17 @@ int I;
 static void reset_all_pold(Graph *G){
     for (Graph *g = G; g; g = g->next){
         Node *v = g->node;
-        set_destroy(Pold(v));
+        set_destroy(&Pold(v));
         Pold(v) = NULL; // o createSet()
     }
+}
+
+static void delete_structs() {
+    destroyDMap(&D);
+    destroyRMap(&R);
+    set_destroy(&C);
+    stack_destroy(&S); 
+    stack_destroy(&T); 
 }
 
 /*
@@ -39,9 +47,12 @@ void wave_Propagation(Graph **G) {
         changed = false;
         collapseSCC(G);
         reset_all_pold(*G);
+        constraints_reset_all_caches(listComplex1);
+        constraints_reset_all_caches(listComplex2);
         perform_Wave_Propagation();
         changed = add_new_edges(G);
-    } while (changed == true);
+        delete_structs();
+    } while (changed);
 }
 
 /*
@@ -79,9 +90,9 @@ static void unify(Graph **G, Node *target, Node *source) {
 
     unify_node_to_target(*G, target, source);
 
-    // 2) Remapear constraints complejas (L/R y cache si hace falta)
-    constraints_remap_unify(listComplex1, source, target);
-    constraints_remap_unify(listComplex2, source, target);
+    // 2) Remapear cache
+    constraints_remap_cache(listComplex1, source, target);
+    constraints_remap_cache(listComplex2, source, target);
     // 3) las edges salientes de sources, agregarlas a target
     out_edges_in_target(target,source);
     //4) Eliminar posible autociclo generado
@@ -90,11 +101,9 @@ static void unify(Graph **G, Node *target, Node *source) {
     mergeNodes(target, source);
     node_alias_merge(target, source);
 
-    //6) eliminar w del grafo
+    //6) eliminar el nodo del grafo y destruir ese nodo
     removeNode(G, source);
     node_destroy(source);
-    /** TODO: DESTRUIR EL NODE al al haber removido todo deberia liberar la memoria dle node *****/
-
 }
 
 /*
@@ -110,8 +119,8 @@ static void unify(Graph **G, Node *target, Node *source) {
 void collapseSCC(Graph **G) {
     D = initDMap(*G);        // todos D(v) = UNVISITED (⊥)
     R = initRMap(*G);        // R(v) = v inicialmente
-    S = createStack();
-    T = createStack();
+    S = stack_create();
+    T = stack_create();
     C = createSet();
     I = 0;
 
@@ -182,20 +191,20 @@ void visitNode(Node* v, int *I) {
         set_addElem(&C,v);  // marcar v en C
 
         // Extraer de S todos los nodos con D(w) > D(v) y unificarlos a v
-        while (!isEmpty(S)) {
+        while (!stack_isEmpty(S)) {
             //let w be the node on the top of S
-            Node *w = top(S);
+            Node *w = stack_top(S);
             if (getDValue(D, w) <= getDValue(D, v)) {
                 break;
             } else {
-              pop(S);
+              stack_pop(S);
               set_addElem(&C,w);    // añadir w a C
               setRValue(R, w, v);   // R(w) <- v (representante)
             }
         }
-        push(T, v);
+        stack_push(T, v);
     }else {
-        push(S,v);
+        stack_push(S,v);
     }
 }
 
@@ -220,14 +229,14 @@ static void propagationTo(Node *w, Set *pdif) {
 */
 void perform_Wave_Propagation() {
 
-    while(!isEmpty(T)) {
+    while(!stack_isEmpty(T)) {
         // v <-- pop node on top of T
-        Node *v = top(T);
-        pop(T);
+        Node *v = stack_top(T);
+        stack_pop(T);
         //Pdif ← Pcur(v) − Pold(v)
         Set *pdif = set_difference(Pcur(v), Pold(v));
         //Pold(v) ← Pcur(v)
-        set_destroy(Pold(v));
+        set_destroy(&Pold(v));
         Pold(v) = NULL;
         Pold(v) = set_clone(Pcur(v));
         //por cada w tal que (v,w) ∈ E, Pcur(w) ← Pcur(w) ∪ Pdif
@@ -235,7 +244,7 @@ void perform_Wave_Propagation() {
             Node* w = edge->node;
             propagationTo(w, pdif);
         }
-        set_destroy(pdif);
+        set_destroy(&pdif);
         pdif = NULL;
     }
 }
@@ -266,8 +275,12 @@ bool add_new_edges(Graph **G) {
     for (ListConstraint *curCons = listComplex1; curCons; curCons = curCons->next) {
         char *lname             = constraint_getL(curCons);
         char *rname             = constraint_getR(curCons);
-        Node *l = findNodeResolved(*G, (char*)lname)->node;
-        Node *r = findNodeResolved(*G, (char*)rname)->node;
+
+        Graph *gl = findNodeResolved(*G, lname);
+        Graph *gr = findNodeResolved(*G, rname);
+        if (!gl || !gr) continue; // o crear nodos
+        Node *l = gl->node;
+        Node *r = gr->node;
 
         //Pnew ← Pcur(r) − Pcache(c)
         Set *pNew           = set_difference(Pcur(r), curCons->pcache);
@@ -284,7 +297,7 @@ bool add_new_edges(Graph **G) {
                 set_union_inplace(&Pcur(l), Pold(v));
             }
         }
-        set_destroy(pNew);
+        set_destroy(&pNew);
         //set_destroy(pCache);
     }
     
@@ -292,8 +305,12 @@ bool add_new_edges(Graph **G) {
     for (ListConstraint *curCons = listComplex2; curCons; curCons = curCons->next) {
         char *lname = constraint_getL(curCons);
         char *rname = constraint_getR(curCons);
-        Node *l = findNodeResolved(*G, (char*)lname)->node;
-        Node *r = findNodeResolved(*G, (char*)rname)->node;
+
+        Graph *gl = findNodeResolved(*G, lname);
+        Graph *gr = findNodeResolved(*G, rname);
+        if (!gl || !gr) continue;
+        Node *l = gl->node;
+        Node *r = gr->node;
 
         Set *pNew = set_difference(Pcur(l), curCons->pcache);
         set_union_inplace(&curCons->pcache, pNew);
@@ -307,7 +324,7 @@ bool add_new_edges(Graph **G) {
                 set_union_inplace(&Pcur(v), Pold(r));
             }
         }
-        set_destroy(pNew);
+        set_destroy(&pNew);
         //set_destroy(pCache);  ///VER QUE HACER CON ESTO (porque causa error)
     }
     return changed;

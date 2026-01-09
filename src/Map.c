@@ -5,6 +5,10 @@ DMap* initDMap(Graph* graph) {
     DMap *head = NULL;
     for (Graph *g = graph; g; g = g->next) {
         DMap *e = (DMap*)malloc(sizeof(DMap));
+        if (!e) { 
+            destroyDMap(&head); 
+            return NULL; 
+        }
         e->node  = g->node;
         e->value = UNVISITED;
         e->next  = head;
@@ -17,6 +21,10 @@ RMap* initRMap(Graph* graph) {
     RMap *head = NULL;
     for (Graph *g = graph; g; g = g->next) {
         RMap *elem = (RMap*)malloc(sizeof(RMap));
+        if (!elem) { 
+            destroyRMap(&head); 
+            return NULL; 
+        }
         elem->node = g->node;
         elem->representative = g->node;   // cada nodo es su propio rep
         elem->next = head;
@@ -25,20 +33,26 @@ RMap* initRMap(Graph* graph) {
     return head;
 }
 
-void destroyDMap(DMap* d) {
+void destroyDMap(DMap **pd) {
+    if (!pd) return;
+    DMap *d = *pd;
     while (d) { 
         DMap* nxt = d->next; 
         free(d); 
         d = nxt; 
     }
+    *pd = NULL;
 }
 
-void destroyRMap(RMap* r) {
+void destroyRMap(RMap **pr) {
+    if (!pr) return;
+    RMap *r = *pr;
     while (r) { 
         RMap* nxt = r->next;
         free(r);
         r = nxt; 
     }
+    *pr = NULL;
 }
 
 int getDValue(DMap* dMap, Node* node) {

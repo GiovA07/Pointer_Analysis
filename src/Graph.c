@@ -219,7 +219,7 @@ static void join_unify(Graph **J, Node *target, Node *source) {
 }
 
 static void absorb_name_collision(Graph **J, Node *rep, char *alias_name) {
-    Graph *conf = findNode(*J, (char*)alias_name);
+    Graph *conf = findNodeResolved(*J, alias_name);
     if (conf && conf->node != rep) {
         join_unify(J, rep, conf->node);
     }
