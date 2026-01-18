@@ -4,4 +4,4 @@ while (cond) {
   C = A;
   A = B;
 }
-D = *C;
+D = *A;

@@ -31,5 +31,6 @@ void printDot(Graph *g, const char* filename);
 Graph* graph_clone(Graph *src);
 Graph* graph_join(Graph *a, Graph *b);
 int graphs_equal(Graph *a, Graph *b);
+void graph_destroy(Graph **g);
 void unify_node_to_target(Graph *G, Node *target, Node *source);
 #endif // GRAPH_H

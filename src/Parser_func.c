@@ -1,9 +1,8 @@
 #include "../include/Parser_func.h"
-#include "../include/Graph.h"
-#include "../include/Adm.h"
-#include "../include/Algorithms.h"
 
 #include <string.h>
+
+int global_id_op = 1;
 
 OpSeq* opSeq_new(void){
   OpSeq *s = (OpSeq*)malloc(sizeof(OpSeq));
@@ -113,87 +112,92 @@ static void wp_with_reset(Graph **G) {
     wave_Propagation(G);
 }
 
-
-void eval_seq(OpSeq *seq, struct Graph **G){
-  for(Op *op=seq->head; op; op=op->next){
-    switch(op->kind){
-        case OP_BASE: {
-            constraitBase(G, op->a, op->b);
-            wp_with_reset(G);
-            break;
-        }
-        case OP_SIMPLE: { 
-            constraintSimple(G, op->a, op->b);
-            wp_with_reset(G);
-            break;
-        }
-        case OP_C1: {
-            constraintComplex1(G, op->a, op->b);
-            wp_with_reset(G);
-            break;
-        }
-        case OP_C2: {
-            constraintComplex2(G, op->a, op->b);
-            wp_with_reset(G);
-            break;
-        }
-
+static void eval_stmt(Graph **G, Op *s, StateTable *st) {
+    switch (s->kind) {
+        case OP_BASE:       constraitBase(G, s->a, s->b); break;    // a = &b
+        case OP_SIMPLE:     constraintSimple(G, s->a, s->b); break; // a = b
+        case OP_C1:         constraintComplex1(G, s->a, s->b); break; // a = *b
+        case OP_C2:         constraintComplex2(G, s->a, s->b); break; // *a = b
         case OP_IF: {
             printf("[Operator] IF\n");
             Graph *base = *G;
+
             Graph *gThen = graph_clone(base);
-            eval_seq(op->then_seq, &gThen);
-            // wave_Propagation(&gThen); AHORA HAGO WAVE PROPAGATION EN CADA SENTENCIA, por ende seria al pedo realizar este.
-            if(op->else_seq) {
+            eval_seq(s->then_seq, &gThen, st);
+            Graph *J = NULL;
+
+            if(s->else_seq) {
                 printf("[Operator] ELSE\n");
-                //Rama del ELSE
+
                 Graph *gElse = graph_clone(base);
-                eval_seq(op->else_seq, &gElse);
+                eval_seq(s->else_seq, &gElse, st);
 
-                // wave_Propagation(&gElse);  AHORA HAGO WAVE PROPAGATION EN CADA SENTENCIA, por ende seria al pedo realizar este.
+                J = graph_join(gThen, gElse);
 
-                Graph *J = graph_join(gThen, gElse);
-                wp_with_reset(&J);
-                *G = J;
-                /*TODO: destruir gthen/gelse*/
+                graph_destroy(&gElse);
             } else {
                 // if sin else
-                Graph *J = graph_join(base, gThen);
-                wp_with_reset(&J);
-                *G = J;
-                /*TODO: destruir gthen*/
+                J = graph_join(base, gThen);
             }
+            graph_destroy(&gThen);
+            // reemplazo IN por OUT
+            graph_destroy(&base);
+            *G = J;
             break;
         }
 
         case OP_WHILE: {
             printf("[Operator] WHILE\n");
+            Graph *IN0 = graph_clone(*G);
             Graph *gaux = graph_clone(*G);
+
             int maxwhile = 10;
-            while (maxwhile > 0) {
-                Graph *prev = graph_clone(gaux);
-                eval_seq(op->then_seq, &gaux);
+            while (maxwhile-- > 0) {
+                Graph *bodyOUT = graph_clone(gaux);
+                eval_seq(s->then_seq, &bodyOUT, st);
                 
-                Graph *join = graph_join(prev, gaux);
+                Graph *join = graph_join(IN0, bodyOUT);
                 wp_with_reset(&join);
-                if (graphs_equal(join, prev)) {
-                    *G = join;
-                    // TODO: graph_destroy(prev);
-                    // TODO: graph_destroy(gaux); // si join != gaux
+                graph_destroy(&bodyOUT);
+                if (graphs_equal(join, gaux)) {
+                    graph_destroy(&gaux);
+                    gaux = join;
                     break;
                 }
                 //Sino sigo ejecutando el while
-                // TODO: graph_destroy(prev);
-                // TODO: graph_destroy(gaux);
+                graph_destroy(&gaux);
                 gaux = join;
-                maxwhile = maxwhile - 1;
             }
-            if (maxwhile <= 0) {
-                *G = gaux;
-                printf("Se hizo el mayor ciclo posible \n");
-            }
+            graph_destroy(&IN0);
+            graph_destroy(G);
+            *G = gaux;
             break;
         }
     }
-  }
+}
+
+
+static Graph* step_stmt(Graph *gIN, Op *op, StateTable *st) {
+    int id = global_id_op++;
+    state_set_in(st, id, graph_clone(gIN));
+
+    Graph *gOUT = graph_clone(gIN);
+    eval_stmt(&gOUT, op, st);
+    wp_with_reset(&gOUT);        // o wave_Propagation(&gout)
+
+    state_set_out(st, id, graph_clone(gOUT));
+
+    return gOUT;
+}
+
+
+void eval_seq(OpSeq *seq, struct Graph **G, StateTable *st) {
+    Graph *state = *G;  // estado actual (IN)
+    for (Op *it = seq->head; it; it = it->next) {
+        Graph *next = step_stmt(state, it, st);
+
+        graph_destroy(&state);
+        state = next;
+    }
+    *G = state; // estado final
 }
