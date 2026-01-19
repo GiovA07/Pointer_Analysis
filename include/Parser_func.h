@@ -4,7 +4,9 @@
 
 #include <stdlib.h>
 #include "./Graph.h"
-
+#include "../include/Adm.h"
+#include "../include/Algorithms.h"
+#include "../include/StateRec.h"
 
 typedef enum { OP_BASE, OP_SIMPLE, OP_C1, OP_C2, OP_IF, OP_WHILE} OpKind;
 typedef struct Op   Op;
@@ -34,6 +36,6 @@ Op* op_if(OpSeq *thenp, OpSeq *elsep);
 Op* op_while(OpSeq *body);
 
 
-void eval_seq(OpSeq *seq, struct Graph **G);
+void eval_seq(OpSeq *seq, struct Graph **G, StateTable *st);
 
 #endif

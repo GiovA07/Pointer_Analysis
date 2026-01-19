@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "../include/Graph.h"
 #include "../include/Parser_func.h"
+#include "../include/StateRec.h"
 
 
 extern int yylineno;
@@ -28,9 +29,17 @@ int yylex();
 
 program: statements                { 
                                     Graph *graph = NULL; 
-                                    eval_seq($1, &graph); 
+                                    StateTable *st = state_table_create();
+
+                                    eval_seq($1, &graph, st); 
+
                                     printDot(graph, "../output/grafo.dot");
+
+                                    state_menu(st);
+
+                                    state_destroy(&st);
                                     opSeq_destroy($1);
+                                    graph_destroy(&graph);
                                    }
 
 statements: statements statement  { $$ = opSeq_concat($1, $2); }

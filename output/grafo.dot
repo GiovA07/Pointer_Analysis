@@ -1,22 +1,22 @@
 digraph{
 rankdir=TB;
 O [label="O {Y}"];
-J [label="J {}"];
-U [label="U {}"];
 D [label="D {}"];
 A [label="A {}"];
-P [label="P {Y}"];
 V [label="V {Y}"];
 C [label="C {Y}"];
-L [label="L {}"];
 Y [label="Y {}"];
+B [label="B {Y}"];
 X [label="X {}"];
-K [label="K {Y}"];
-J -> U;
+L [label="L {}"];
+P [label="P {Y}"];
+U [label="U {}"];
+J [label="J {}"];
 D -> A;
+B -> V;
+B -> C;
+B -> P;
+L -> B;
 P -> O;
-L -> K;
-K -> P;
-K -> V;
-K -> C;
+J -> U;
 }

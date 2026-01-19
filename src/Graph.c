@@ -323,3 +323,20 @@ int graphs_equal(Graph *a, Graph *b){
     }
     return 1;
 }
+
+
+void graph_destroy(Graph **g) {
+    if (!g || !*g) return;
+
+    Graph *cur = *g;
+    while (cur) {
+        Graph *next = cur->next;
+
+        // el grafo es dueño del Node
+        node_destroy(cur->node);
+
+        free(cur);
+        cur = next;
+    }
+    *g = NULL;
+}
