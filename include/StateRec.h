@@ -4,7 +4,6 @@
 
 
 #include <stdlib.h>
-#include <ctype.h> 
 
 #include "./Graph.h"
 

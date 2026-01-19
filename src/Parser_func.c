@@ -141,7 +141,7 @@ static void eval_stmt(Graph **G, Op *s, StateTable *st) {
             }
             graph_destroy(&gThen);
             // reemplazo IN por OUT
-            graph_destroy(&base);
+            graph_destroy(G);
             *G = J;
             break;
         }
@@ -177,7 +177,7 @@ static void eval_stmt(Graph **G, Op *s, StateTable *st) {
 }
 
 
-static Graph* step_stmt(Graph *gIN, Op *op, StateTable *st) {
+static Graph* process_stmt(Graph *gIN, Op *op, StateTable *st) {
     int id = global_id_op++;
     state_set_in(st, id, graph_clone(gIN));
 
@@ -194,7 +194,7 @@ static Graph* step_stmt(Graph *gIN, Op *op, StateTable *st) {
 void eval_seq(OpSeq *seq, struct Graph **G, StateTable *st) {
     Graph *state = *G;  // estado actual (IN)
     for (Op *it = seq->head; it; it = it->next) {
-        Graph *next = step_stmt(state, it, st);
+        Graph *next = process_stmt(state, it, st);
 
         graph_destroy(&state);
         state = next;

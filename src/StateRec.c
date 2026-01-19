@@ -1,4 +1,7 @@
 #include "../include/StateRec.h"
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h> 
 
 static StateRec* state_find(StateTable *st, int id) {
     for (StateRec *r = st->head; r; r = r->next) {
