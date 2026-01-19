@@ -21,22 +21,18 @@ static void removeAllInEdgesTo(Graph *g, Node *a) {
     }
 }
 
-static void removeAllOutEdgesFrom(Node *a) {
-    set_destroy(&a->edges);
-}
-
 /*  Mata el estado previo de la variable 'a' */
 static void kill_var_state(Graph *g, Node *a) {
     set_destroy(&a->references);         /* borra {&...} en 'a' */
-    a->references = NULL;
-    removeAllInEdgesTo(g, a);           /* quita todas las x->a */
-    removeAllOutEdgesFrom(a);           /* quita todas las a -> x*/
+    a->references = createSet();
+    
+    removeAllInEdgesTo(g, a);           /* borra aristas salientes x->a */
+    
+    set_destroy(&a->edges);             /* borra aristas entrantes a -> x*/
+    a->edges = createSet();
+    
     set_destroy(&Pold(a));
     Pold(a) = NULL;
-     /* Pensar si agregar:
-       clearPcur(a);
-       invalidateCachesFor(a);
-    */
 }
 
 static char* pick_other_alias(Node *n, char *exclude) {
@@ -109,12 +105,23 @@ void constraintComplex1(Graph **g, char *l_name, char *r_name) {
     printf("[Operator] Complex 1 Constraint: %s ⊇ *%s\n", l_name, r_name);
 }
 
+static Node* pcur_unique_target(Node *l) {
+    Set *pts = Pcur(l);
+    if (!pts) return NULL;
+    if (pts->next) return NULL;
+    return pts->node;                // exactamente 1 solo
+}
+
 // Complex 2: *l ⊇ r  (*l = r)
 void constraintComplex2(Graph **g, char *l_name, char *r_name) {
     Node *l = ensure_node(g, l_name);
     Node *r = ensure_node(g, r_name);
 
-    addConstraint(&listComplex2, l_name, r_name);
+    Node *n = pcur_unique_target(l);
+    if (n) { //Kill sobre el nodo target
+        kill_var_state(*g, n);
+    }
 
+    addConstraint(&listComplex2, l_name, r_name);
     printf("[Operator] Complex 2 Constraint: *%s ⊇ %s\n", l_name, r_name);
 }
