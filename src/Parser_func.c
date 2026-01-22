@@ -1,5 +1,9 @@
 #include "../include/Parser_func.h"
-
+#include "../include/Graph.h"
+#include "../include/Adm.h"
+#include "../include/Algorithms.h"
+#include "../include/StateRec.h"
+#include <stdio.h>
 #include <string.h>
 
 int global_id_op = 1;
@@ -84,12 +88,12 @@ Op* op_while(OpSeq *body){
 void opSeq_destroy(OpSeq *s){
   for (Op *o= s->head, *next; o; o=next){
     next = o->next;
-    if (o->kind==OP_IF){
-        if (o->then_seq){ 
+    if (o->kind == OP_IF || o->kind == OP_WHILE) {
+        if (o->then_seq) { 
             opSeq_destroy(o->then_seq); 
             free(o->then_seq); 
         }
-        if (o->else_seq){ 
+        if (o->else_seq) { 
             opSeq_destroy(o->else_seq); 
             free(o->else_seq); 
         }
@@ -111,6 +115,7 @@ static void wp_with_reset(Graph **G) {
 
     wave_Propagation(G);
 }
+
 
 static void eval_stmt(Graph **G, Op *s, StateTable *st) {
     switch (s->kind) {
@@ -177,9 +182,26 @@ static void eval_stmt(Graph **G, Op *s, StateTable *st) {
 }
 
 
+
+static char* op_to_string(Op *op) {
+    char *buf = (char*)malloc(256);
+    if (!buf) return NULL;
+    switch (op->kind) {
+        case OP_BASE:   sprintf(buf, "%s = &%s", op->a, op->b); break;
+        case OP_SIMPLE: sprintf(buf, "%s = %s",  op->a, op->b); break;
+        case OP_C1:     sprintf(buf, "%s = *%s", op->a, op->b); break;
+        case OP_C2:     sprintf(buf, "*%s = %s", op->a, op->b); break;
+        case OP_IF:     sprintf(buf, "if (...)"); break;
+        case OP_WHILE:  sprintf(buf, "while (...)"); break;
+        default:        sprintf(buf, "<unknown>"); break;
+    }
+    return buf;
+}
+
 static Graph* process_stmt(Graph *gIN, Op *op, StateTable *st) {
     int id = global_id_op++;
     state_set_in(st, id, graph_clone(gIN));
+    state_set_data(st, id, op_to_string(op));
 
     Graph *gOUT = graph_clone(gIN);
     eval_stmt(&gOUT, op, st);
@@ -189,7 +211,6 @@ static Graph* process_stmt(Graph *gIN, Op *op, StateTable *st) {
 
     return gOUT;
 }
-
 
 void eval_seq(OpSeq *seq, struct Graph **G, StateTable *st) {
     Graph *state = *G;  // estado actual (IN)

@@ -13,6 +13,7 @@ typedef struct StateTable StateTable;
 struct StateRec
 {
   int op_id;
+  char *data;
   Graph *in;
   Graph *out;
   struct StateRec *next;
@@ -26,6 +27,7 @@ StateTable* state_table_create();
 
 void state_set_in(StateTable *st, int id, Graph *gclone);
 void state_set_out(StateTable *st, int id, Graph *gclone);
+void state_set_data(StateTable *st, int id, char *data);
 
 Graph* state_get_in(StateTable *st, int id);
 Graph* state_get_out(StateTable *st, int id);

@@ -48,8 +48,6 @@ void wave_Propagation(Graph **G) {
         changed = false;
         collapseSCC(G, &ctx);
         reset_all_pold(*G);
-        constraints_reset_all_caches(listComplex1);
-        constraints_reset_all_caches(listComplex2);
         perform_Wave_Propagation(&ctx);
         changed = add_new_edges(G);
         wpctx_destroy(&ctx);
