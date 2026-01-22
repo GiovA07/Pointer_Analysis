@@ -144,16 +144,22 @@ Graph* graph_clone(Graph *src) {
     // 2) copiar references y edges por nombre
     for (Graph *g=src; g; g=g->next) {
         Node *n_src = g->node;
-        Node *n_dst = findNode(result, n_src->name)->node;
+        
+        Graph *gdst = findNodeResolved(result, n_src->name);
+        if (!gdst) continue;
+        Node *n_dst = gdst->node;
+
         // Copiar referencias
-        for (Set *r=n_src->references; r; r=r->next) {
-            Node *v_dst = findNode(result, r->node->name)->node;
-            addReference(n_dst, v_dst);
+        for (Set *r = n_src->references; r; r = r->next) {
+            Graph *gr = findNodeResolved(result, r->node->name);
+            if (!gr) continue;
+            addReference(n_dst, gr->node);
         }
         // Copiar Edges
-        for (Set *e=n_src->edges; e; e=e->next) {
-            Node *v_dst = findNode(result, e->node->name)->node;
-            addEdgeInNode(n_dst, v_dst);
+        for (Set *e = n_src->edges; e; e=e->next) {
+            Graph *ge = findNodeResolved(result, e->node->name);
+            if (!ge) continue;
+            addEdgeInNode(n_dst, ge->node);
         }
         //Copiar alias
         for (Alias *a = n_src->aliases; a; a = a->next)
@@ -291,30 +297,26 @@ Graph* graph_join(Graph *a, Graph *b) {
     return j;
 }
 
-static Node* find_by_name(Graph *g, char *name){
-    Graph *gx = findNode(g, name);
-    return gx ? gx->node : NULL;
-}
-
 int graphs_equal(Graph *a, Graph *b){
     if (a == b) return 1;
     if (!a || !b) return 0;
 
     // mismo conjunto de nodos por nombre
-    for (Graph *ga = a; ga; ga = ga->next){
-        Node *nName = find_by_name(b, ga->node->name);
-        if (!nName) return 0;
+    for (Graph *ga = a; ga; ga = ga->next) {
+        Graph *gb = findNodeResolved(b, ga->node->name);
+        if (!gb) return 0;
     }
-    for (Graph *gb=b; gb; gb=gb->next){
-        Node *nName = find_by_name(a, gb->node->name);
-        if (!nName) return 0;
+    for (Graph *gb = b; gb; gb = gb->next) {
+        Graph *ga = findNodeResolved(a, gb->node->name);
+        if (!ga) return 0;
     }
+
     // mismas refs, edges y alias por nodo
     for (Graph *ga=a; ga; ga=ga->next){
         Node *na = ga->node;
-        Node *nb = find_by_name(b, na->name);
-
-        if (!nb) return 0;
+        Graph *gb = findNodeResolved(b, na->name);
+        if (!gb) return 0;
+        Node *nb = gb->node;
         
         if (!aliases_equal(na->aliases, nb->aliases)) return 0;
         if(!set_equals(na->references, nb->references)) return 0;

@@ -6,8 +6,6 @@
 #include <string.h>
 #include "Set.h"
 
-#define MAX_NODES 10
-
 /* MACROS */
 #define Pcur(n) ((n)->references)
 #define Pold(n) ((n)->pold)
