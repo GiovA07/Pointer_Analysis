@@ -6,33 +6,32 @@
 ListConstraint *listComplex1 = NULL;  // a ⊇ *b
 ListConstraint *listComplex2 = NULL;  // *a ⊇ b
 
-// Mapas para D y R
-DMap *D;
-RMap *R;
-// SET C y STACKS S, T usadas en (Alg.2/Alg.3)
-Set *C;
-Stack *S;
-Stack *T;
-// contador global para numerar nodos (D)
-int I;
+static void wpctx_init(WPContext *ctx, Graph *G) {
+    memset(ctx, 0, sizeof(*ctx));
+    ctx->D = initDMap(G);
+    ctx->R = initRMap(G);
+    ctx->S = stack_create();
+    ctx->T = stack_create();
+    ctx->C = createSet();
+    ctx->I = 0;
+}
+
+static void wpctx_destroy(WPContext *ctx) {
+    destroyDMap(&ctx->D);
+    destroyRMap(&ctx->R);
+    set_destroy(&ctx->C);
+    stack_destroy(&ctx->S);
+    stack_destroy(&ctx->T);
+    memset(ctx, 0, sizeof(*ctx));
+}
 
 
 static void reset_all_pold(Graph *G){
     for (Graph *g = G; g; g = g->next){
         Node *v = g->node;
         set_destroy(&Pold(v));
-        Pold(v) = NULL; // o createSet()
     }
 }
-
-static void delete_structs() {
-    destroyDMap(&D);
-    destroyRMap(&R);
-    set_destroy(&C);
-    stack_destroy(&S); 
-    stack_destroy(&T); 
-}
-
 /*
  * Algorithm 1: Wave Propagation
  * ----------------------------------------------------------------------------
@@ -44,14 +43,16 @@ void wave_Propagation(Graph **G) {
     if (!G || !*G) { printf("Grafo vacío"); return; }
     bool changed;
     do {
+        WPContext ctx;
+        wpctx_init(&ctx, *G);
         changed = false;
-        collapseSCC(G);
+        collapseSCC(G, &ctx);
         reset_all_pold(*G);
         constraints_reset_all_caches(listComplex1);
         constraints_reset_all_caches(listComplex2);
-        perform_Wave_Propagation();
+        perform_Wave_Propagation(&ctx);
         changed = add_new_edges(G);
-        delete_structs();
+        wpctx_destroy(&ctx);
     } while (changed);
 }
 
@@ -116,18 +117,11 @@ static void unify(Graph **G, Node *target, Node *source) {
  *   - Recorre todos los nodos no visitados con visitNode.
  *   - Unifica (unify) todo v cuyo R(v) != v con su representante R(v).
  */
-void collapseSCC(Graph **G) {
-    D = initDMap(*G);        // todos D(v) = UNVISITED (⊥)
-    R = initRMap(*G);        // R(v) = v inicialmente
-    S = stack_create();
-    T = stack_create();
-    C = createSet();
-    I = 0;
-
+void collapseSCC(Graph **G, WPContext *ctx) {
     // Primera fase: Visitar nodos no visitados
     for (Graph *curGraph = *G; curGraph; curGraph = curGraph->next) {
-        if (getDValue(D, curGraph->node) == UNVISITED) {
-            visitNode(curGraph->node, &I);
+        if (getDValue(ctx->D, curGraph->node) == UNVISITED) {
+            visitNode(curGraph->node, ctx);
         }
     }
     // Segunda fase: Collapse Strongly Connected Components (SCCs)
@@ -135,7 +129,7 @@ void collapseSCC(Graph **G) {
     Graph *next = NULL;
     for (Graph *curGraph = *G; curGraph; curGraph = next) {
         Node *v = curGraph->node;
-        Node *r = getRValue(R, v);
+        Node *r = getRValue(ctx->R, v);
         next = curGraph->next;  //Este lo pongo aca porque puede borrarse el nodo al unificar y eso me arrina el algoritmo
         if (r != v) {
             unify(G, r, v);
@@ -163,61 +157,49 @@ void collapseSCC(Graph **G) {
  *   - Si R(v) != v:
  *       v todavia depende de alguien “más antiguo”: se apila en S.
  */
-void visitNode(Node* v, int *I) {
-    (*I)++;
-    setDValue(D, v, *I);    // D(v) <- I
-    setRValue(R, v, v);     // R(v) <- v inicialmente
+void visitNode(Node* v, WPContext *ctx) {
+    ctx->I++;
+    setDValue(ctx->D, v, ctx->I);    // D(v) <- I
+    setRValue(ctx->R, v, v);     // R(v) <- v inicialmente
     // Recorremos todos los sucesores (v,w) ∈ E
     Set *edge = v->edges;
     while (edge != NULL) {
         Node *w = edge->node;
         // Si w no visitado, recursivamente lo visitamos
-        if (getDValue(D, w) == UNVISITED) 
-            visitNode(w, I);
+        if (getDValue(ctx->D, w) == UNVISITED) 
+            visitNode(w, ctx);
 
         // Solo consideramos R(w) si w no esta ya en C 
-        if (!set_existElem(C,w)) {
+        if (!set_existElem(ctx->C,w)) {
             //R(v) ← (D(R(v)) < D(R(w))) ? R(v) : R(w)
-            Node *RvalueInV = getRValue(R,v);
-            Node *RvalueInW = getRValue(R,w);
-            if (getDValue(D, RvalueInV) > getDValue(D, RvalueInW)) {
-                setRValue(R, v, RvalueInW);
+            Node *RvalueInV = getRValue(ctx->R,v);
+            Node *RvalueInW = getRValue(ctx->R,w);
+            if (getDValue(ctx->D, RvalueInV) > getDValue(ctx->D, RvalueInW)) {
+                setRValue(ctx->R, v, RvalueInW);
             }
         }
         edge = edge->next;
     }
     // Si R(v) == v entonces v es representante de una SCC
-    if (getRValue(R,v) == v) {
-        set_addElem(&C,v);  // marcar v en C
+    if (getRValue(ctx->R,v) == v) {
+        set_addElem(&ctx->C,v);  // marcar v en C
 
         // Extraer de S todos los nodos con D(w) > D(v) y unificarlos a v
-        while (!stack_isEmpty(S)) {
+        while (!stack_isEmpty(ctx->S)) {
             //let w be the node on the top of S
-            Node *w = stack_top(S);
-            if (getDValue(D, w) <= getDValue(D, v)) {
+            Node *w = stack_top(ctx->S);
+            if (getDValue(ctx->D, w) <= getDValue(ctx->D, v)) {
                 break;
             } else {
-              stack_pop(S);
-              set_addElem(&C,w);    // añadir w a C
-              setRValue(R, w, v);   // R(w) <- v (representante)
+              stack_pop(ctx->S);
+              set_addElem(&ctx->C,w);    // añadir w a C
+              setRValue(ctx->R, w, v);   // R(w) <- v (representante)
             }
         }
-        stack_push(T, v);
+        stack_push(ctx->T, v);
     }else {
-        stack_push(S,v);
+        stack_push(ctx->S,v);
     }
-}
-
-// Propaga el conjunto pdif desde v a w
-static void propagationTo(Node *w, Set *pdif) {
-    set_union_inplace(&Pcur(w), pdif);
-
-    // Set *oldRefs = Pcur(w);
-    // Pcur(w) = set_union(oldRefs, pdif);
-    // /** REVIEW:	ver si es correcto clonar el pold aca*/
-    // set_destroy(Pold(w));
-    // Pold(w) = set_clone(Pcur(w));
-    // set_destroy(oldRefs);
 }
 
 
@@ -227,25 +209,23 @@ static void propagationTo(Node *w, Set *pdif) {
  *   recorriendo T.
  * - Mantiene el invariante Pold(v) ⊆ Pcur(v).
 */
-void perform_Wave_Propagation() {
+void perform_Wave_Propagation(WPContext *ctx) {
 
-    while(!stack_isEmpty(T)) {
+    while(!stack_isEmpty(ctx->T)) {
         // v <-- pop node on top of T
-        Node *v = stack_top(T);
-        stack_pop(T);
+        Node *v = stack_top(ctx->T);
+        stack_pop(ctx->T);
         //Pdif ← Pcur(v) − Pold(v)
         Set *pdif = set_difference(Pcur(v), Pold(v));
         //Pold(v) ← Pcur(v)
         set_destroy(&Pold(v));
-        Pold(v) = NULL;
         Pold(v) = set_clone(Pcur(v));
         //por cada w tal que (v,w) ∈ E, Pcur(w) ← Pcur(w) ∪ Pdif
         for (Set *edge = v->edges; edge; edge = edge->next) {
             Node* w = edge->node;
-            propagationTo(w, pdif);
+            set_union_inplace(&Pcur(w), pdif);
         }
         set_destroy(&pdif);
-        pdif = NULL;
     }
 }
 
