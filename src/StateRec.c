@@ -154,7 +154,7 @@ void state_menu(StateTable *state_tbl) {
             continue;
         }
 
-        printf("ID %d: No tiene datos!!\n", id);
+        printf("ID %d: %s\n", id, r->data ? r->data : "<sin data>");
 
         printf("Elije (i) in / (o) out / (b) both / (c) cancelar ");
         if (!fgets(buf, sizeof(buf), stdin)) break;

@@ -25,13 +25,6 @@ static void wpctx_destroy(WPContext *ctx) {
     memset(ctx, 0, sizeof(*ctx));
 }
 
-
-static void reset_all_pold(Graph *G){
-    for (Graph *g = G; g; g = g->next){
-        Node *v = g->node;
-        set_destroy(&Pold(v));
-    }
-}
 /*
  * Algorithm 1: Wave Propagation
  * ----------------------------------------------------------------------------
@@ -47,7 +40,6 @@ void wave_Propagation(Graph **G) {
         wpctx_init(&ctx, *G);
         changed = false;
         collapseSCC(G, &ctx);
-        reset_all_pold(*G);
         perform_Wave_Propagation(&ctx);
         changed = add_new_edges(G);
         wpctx_destroy(&ctx);

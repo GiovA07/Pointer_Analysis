@@ -12,8 +12,8 @@
 
   struct Op {
     OpKind kind;
-    char *a, *b;         // para BASE/SIMPLE/C1/C2
-    OpSeq *then_seq;      // IF usa then_seq (para las operaciones del cuerpo)
+    char *a, *b;          // para BASE/SIMPLE/C1/C2
+    OpSeq *then_seq;      // IF usa then_seq (para las operaciones del cuerpo) y para while.
     OpSeq *else_seq;      // IF: else opcional
     Op   *next;
   };
@@ -25,7 +25,7 @@
   OpSeq* opSeq_concat(OpSeq *a, OpSeq *b); /* concatena dos sequencias y devuelve a*/
   void opSeq_destroy(OpSeq *s);
 
-  /*constructores*/
+  /*constructores de operaciones*/
   Op* op_base(char *a, char *b);
   Op* op_simple(char *a, char *b);
   Op* op_c1(char *l, char *r);
@@ -33,7 +33,7 @@
   Op* op_if(OpSeq *thenp, OpSeq *elsep);
   Op* op_while(OpSeq *body);
 
-
+  /* Funcion para evaluar la lista de operaciones */
   void eval_seq(OpSeq *seq, struct Graph **G, StateTable *st);
 
   #endif

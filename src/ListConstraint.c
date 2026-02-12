@@ -47,7 +47,7 @@ void constraint_setCache(ListConstraint *list, Set *newCache) {
 }
 
 
-void constraint_resetCache(ListConstraint *c) {
+static void constraint_resetCache(ListConstraint *c) {
     set_destroy(&c->pcache);
     c->pcache = createSet();
 }

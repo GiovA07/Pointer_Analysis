@@ -13,10 +13,10 @@ typedef struct StateTable StateTable;
 struct StateRec
 {
   int op_id;
-  char *data;
-  Graph *in;
-  Graph *out;
-  struct StateRec *next;
+  char *data;             /* Metadato del estado (sentencia)*/
+  Graph *in;              /* Grafo anterior a ejecutar la sentencia*/
+  Graph *out;             /* Grafo resultante*/
+  struct StateRec *next;  
 };
 
 struct StateTable{

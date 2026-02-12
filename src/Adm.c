@@ -26,9 +26,9 @@ static void kill_var_state(Graph *g, Node *a) {
     set_destroy(&a->references);         /* borra {&...} en 'a' */
     a->references = createSet();
     
-    removeAllInEdgesTo(g, a);           /* borra aristas salientes x->a */
+    removeAllInEdgesTo(g, a);           /* borra aristas entrantes x->a */
     
-    set_destroy(&a->edges);             /* borra aristas entrantes a -> x*/
+    set_destroy(&a->edges);             /* borra aristas salientes a -> x*/
     a->edges = createSet();
     
     set_destroy(&Pold(a));

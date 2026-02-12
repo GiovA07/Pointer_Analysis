@@ -25,11 +25,10 @@ typedef struct Node {
     Alias *aliases;
 } Node;
 
-//set-gets
-void node_setReferences(Node *node, Set *src);
 
-// Funciones para manejar los nodos
 Node* createNode(char *name);
+
+void node_setReferences(Node *node, Set *src);
 
 void addReference(Node *node, Node *ref);
 void removeReference(Node *node, Node *ref);
@@ -41,7 +40,6 @@ int existEdgeInNode(Node *node, Node *ref);
 int  node_has_alias(Node *n, char *name);
 void node_alias_add(Node *n, char *name);
 void node_alias_merge(Node *target, Node *source);
-
 int aliases_equal(Alias *a, Alias *b);
 
 int  node_isalias_grouped(Node *n);

@@ -96,7 +96,6 @@ void set_destroy(Set **s) {
 
 bool set_empty(Set *s) { return s == NULL; }
 
-
 void set_print(Set *set) {
     for (; set; set = set->next)
         printf("- %s\n", set->node->name);
@@ -110,7 +109,6 @@ static int set_contains_name(Set *s, char *name) {
         }
     return 0;
 }
-
 
 bool set_equals(Set *a, Set *b) {
     if (a == b) return true; 

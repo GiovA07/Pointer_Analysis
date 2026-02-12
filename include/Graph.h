@@ -10,8 +10,8 @@
 
 // Grafo
 typedef struct Graph{
-    Node* node;                // Nodo actual del grafo
-    struct Graph* next;        // Siguiente nodo
+    Node* node;                     // Nodo actual del grafo
+    struct Graph* next;             // Siguiente nodo
 } Graph;
 
 // Funciones para manejar el grafo

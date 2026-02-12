@@ -5,10 +5,10 @@
 #include "Set.h"
 
 typedef struct ListConstraint {
-    char *l;                     // 'a' en a ⊇ *b o *a ⊇ b
-    char *r;                     // 'b' en *b o b
+    char *l;                            // 'l' en l ⊇ *r o *l ⊇ r
+    char *r;
     Set *pcache;                        // conjunto cache de nodos ya procesados
-    struct ListConstraint *next;        // Siguiente restriccion compleja
+    struct ListConstraint *next;        // siguiente restriccion
 } ListConstraint;
 
 
@@ -27,11 +27,9 @@ void constraint_setR(ListConstraint *list, char *rep);
 Set* constraint_getCache(ListConstraint *list);
 void constraint_setCache(ListConstraint *list, Set *newCache);
 
-
-void constraint_resetCache(ListConstraint *c);
 void constraints_reset_all_caches(ListConstraint *list);
-
 void constraints_remap_cache(ListConstraint *list, Node *oldw, Node *rep);
+
 
 void printConstraintComplex1(ListConstraint *list);
 void printConstraintComplex2(ListConstraint *list);

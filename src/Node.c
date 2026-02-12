@@ -50,8 +50,6 @@ int existEdgeInNode(Node *node, Node *ref) {
     return set_existElem(node->edges, ref) ? 1 : 0;
 }
 
-
-
 static int alias_contains(Alias *a, char *name){
     for(; a; a=a->next) 
         if(strcmp(a->name,name)==0) return 1;

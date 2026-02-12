@@ -22,10 +22,10 @@ typedef struct {
 } WPContext;
 
 
-void wave_Propagation(Graph **G);                       //Algorithm 1
-void collapseSCC(Graph **G, WPContext *ctx);                            //Algorithm 2
-void visitNode(Node* v, WPContext *ctx);                        //Algorithm 3
-void perform_Wave_Propagation(WPContext *ctx);                        //Algorithm 4
-bool add_new_edges(Graph **G);                          //Algorithm 5
+void wave_Propagation(Graph **G);                   //Algorithm 1
+void collapseSCC(Graph **G, WPContext *ctx);        //Algorithm 2
+void visitNode(Node* v, WPContext *ctx);            //Algorithm 3
+void perform_Wave_Propagation(WPContext *ctx);      //Algorithm 4
+bool add_new_edges(Graph **G);                      //Algorithm 5
 
 #endif
