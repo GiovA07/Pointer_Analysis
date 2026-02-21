@@ -83,6 +83,7 @@ void printConstraintComplex2(ListConstraint *list) {
 }
 
 void constraints_destroy(ListConstraint *list) {
+    if (!list) return;
     while (list) {
         ListConstraint *nx = list->next;
         free(list->l);

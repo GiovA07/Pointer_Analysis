@@ -35,4 +35,5 @@ void printConstraintComplex1(ListConstraint *list);
 void printConstraintComplex2(ListConstraint *list);
 
 void constraints_destroy(ListConstraint *list);
+
 #endif

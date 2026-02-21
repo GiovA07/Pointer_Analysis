@@ -1,7 +1,6 @@
 A = &X;
 B = &Y;
 while (cond) {
-  C = A;
   A = B;
 }
-D = *A;
+C = A;
