@@ -38,7 +38,7 @@ void removeNode(Graph **g, Node *node) {
         if (current->node == node) {
             // Eliminar el nodo de la lista
             if (prev == NULL)
-                // El nodo está al principio de la lista
+                // El nodo esta al principio de la lista
                 *g = current->next;
             else
                 prev->next = current->next;
@@ -177,7 +177,7 @@ void unify_node_to_target(Graph *G, Node *target, Node *source) {
 }
 
 /* 
- * Fusiona el nodo source dentro del nodo taret.
+ * Fusiona el nodo source dentro del nodo target.
  * 1. Redirige edges y referencias del grafo hacia target.
  * 2. Une las referencias, edges, conjuntos pold y alias de ambos nodos.
  * 3. Elimina los autociclos que pueden suceder.

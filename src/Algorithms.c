@@ -28,12 +28,14 @@ static void wpctx_destroy(WPContext *ctx) {
 /*
  * Algorithm 1: Wave Propagation
  * ----------------------------------------------------------------------------
- *   1) Colapsa ciclos (SCC) => el grafo se vuelve aciclico.
- *   2) Propaga puntos-a en orden topológico (usando T), SOLO las diferencias.
- *   3) Evalua constraints complejas y agrega aristas nuevas si aparecen.
+ * Se ejecuta en un ciclo hasta un punto fijo (changed == false), 
+ * es decir, hasta que ya no se encuentren nuevas relaciones de punteros.
+ *   1) Colapsa componentes fuertemente conectados (SCC) el grafo se vuelve aciclico.
+ *   2) Propaga puntos-a en orden topologico (usando T).
+ *   3) Evalua constraints complejas y agrega nuevas aristas.
  */
 void wave_Propagation(Graph **G) {
-    if (!G || !*G) { printf("Grafo vacío"); return; }
+    if (!G || !*G) { printf("Grafo vacio"); return; }
     bool changed;
     do {
         WPContext ctx;
@@ -48,8 +50,8 @@ void wave_Propagation(Graph **G) {
 
 /*
  * mergeNodes: combina el conjunto de referencias
- * (Pcur/Pold u otros sets relacionados) de w dentro de v.
- * - usamos set_union y reemplazamos v->references por la unión.
+ * (Pcur/Pold) de w dentro de v.
+ * - Utiliza set_union y reemplazamos v->references por la union.
  */
 static void mergeNodes(Node *target, Node *source) {
     // t = t u s
@@ -57,7 +59,7 @@ static void mergeNodes(Node *target, Node *source) {
     set_union_inplace(&Pold(target), Pold(source));
 }
 
-/* Las edges salientes de source en target */
+/* Agrega las edges salientes de source en target */
 static void out_edges_in_target(Node *target, Node *source) {
     for (Set *e = source->edges; e; e = e->next) {
         node_addEdge(target, e->node);
@@ -67,14 +69,14 @@ static void out_edges_in_target(Node *target, Node *source) {
 /*
  * unify(g, v, w)
  * ----------------------------------------------------------------------------
- * Colapsa el nodo w dentro del representante v.
+ * Colapsa el nodo source dentro del nodo target.
  *
  * Que actualiza:
- *   - Aristas entrantes x->w  se reemplazan por x->v.
- *   - Referencias (points-to) hacia w se redirigen a v.
- *   - Se elimina el posible autociclo v->v si aparece.
- *   - Se fusionan Pcur/Pold: v := (v ∪ w) (mergeNodes).
- *   - Se elimina w del grafo.
+ *   - Aristas entrantes source->w  se reemplazan por target->w.
+ *   - Referencias (points-to) hacia source se redirigen a target.
+ *   - Se elimina el posible autociclo target->target si aparece.
+ *   - Se fusionan Pcur/Pold: target := (target ∪ source) (mergeNodes).
+ *   - Se elimina nodo source del grafo.
  */
 static void unify(Graph **G, Node *target, Node *source) {
     if (target == source) return;
@@ -98,9 +100,9 @@ static void unify(Graph **G, Node *target, Node *source) {
 }
 
 /*
- * Algorithm 2: Collapse SCCs
- *   Detecta componentes fuertemente conexos y colapsarlos a un representante,
- *   dejando G como aciclico. Además, contruye T con los representantes en
+ * Algoritmo 2: Colapso de Componentes Fuertemente Conectados (SCC) 
+ *   Detecta componentes fuertemente conectados y los colapsa a un representante,
+ *   dejando G como aciclico. Ademas, contruye T con los representantes en
  *   orden topologico (T se usa luego para propagar).
  * ----------------------------------------------------------------------------
  *   - Inicializa D,R,S,T,C; reinicia I.
@@ -120,7 +122,7 @@ void collapseSCC(Graph **G, WPContext *ctx) {
     for (Graph *curGraph = *G; curGraph; curGraph = next) {
         Node *v = curGraph->node;
         Node *r = getRValue(ctx->R, v);
-        next = curGraph->next;  //Este lo pongo aca porque puede borrarse el nodo al unificar y eso me arrina el algoritmo
+        next = curGraph->next;
         if (r != v) {
             unify(G, r, v);
         }
@@ -130,22 +132,20 @@ void collapseSCC(Graph **G, WPContext *ctx) {
 /*
  * Algorithm 3: visitNode
  * ----------------------------------------------------------------------------
- * Entradas:
- *   v: nodo actual; *I: contador global de num. de visita.
+ * Realiza una busqueda en profundidad (DFS) para encontrar Componentes 
+ * Fuertemente Conectados (ciclos) y construir un orden topologico.
+ * 
+ *   - D(v) marca el orden DFS (cuando visitamos el nodo).
+ *   - R(v) Representante del nodo (apunta a la raiz del ciclo).
+ *   - S Pila de nodos ya explorados.
+ *   - C Conjunto de nodos que ya fueron procesados y cerrados.
+ *   - T Pila final donde guardamos los representantes en orden topologico.
  *
- * Idea:
- *   - D(v) marca el orden DFS.
- *   - R(v) rastrea el "minimo" representante visto desde v (posible raiz de SCC).
- *   - S apila nodos que podrian pertenecer a la SCC actual.
- *   - C marca nodos ya cerrados en alguna SCC.
- *
- * Casos:
- *   - Si R(v) == v:
- *       v es raiz de su SCC. “Cerramos” la SCC: sacamos de S los w con
- *       D(w) > D(v), los marcamos en C y seteamos R(w)=v.
- *       Luego pusheamos v en T (v es representante y aporta al orden topologico).
- *   - Si R(v) != v:
- *       v todavia depende de alguien “más antiguo”: se apila en S.
+ *   1. Exploramos los sucesores de v. Si encontramos una conexion hacia atras
+ *   (un nodo con un D menor), actualizamos nuestro representante R(v).
+ *   2. Si al terminar de explorar resulta que R(v) = v, significa que v es la raiz del ciclo.
+ *   Sacamos de la pila S todos los nodos de ese ciclo, los asignamos a v como su representante
+ *   y guardamos v en T.
  */
 void visitNode(Node* v, WPContext *ctx) {
     ctx->I++;
@@ -176,7 +176,7 @@ void visitNode(Node* v, WPContext *ctx) {
 
         // Extraer de S todos los nodos con D(w) > D(v) y unificarlos a v
         while (!stack_isEmpty(ctx->S)) {
-            //let w be the node on the top of S
+            //w es el nodo en el top de la pila S
             Node *w = stack_top(ctx->S);
             if (getDValue(ctx->D, w) <= getDValue(ctx->D, v)) {
                 break;
@@ -195,14 +195,16 @@ void visitNode(Node* v, WPContext *ctx) {
 
 /*
  * Algorithm 4: perform_Wave_Propagation
- * - Propaga las diferencias Pdif = Pcur(v) - Pold(v) a los sucesores de v,
- *   recorriendo T.
- * - Mantiene el invariante Pold(v) ⊆ Pcur(v).
+ * Transmite la informacion a la que apunta cada nodo hacia sus sucesores, 
+ * procesandolos en orden topologico (utilizando la pila T).
+ * 
+ * - Propaga las diferencias Pdif = Pcur(v) - Pold(v) a los sucesores de v, recorriendo T.
+ *
+ * - Mantiene el invariante: Pold(v) ⊆ Pcur(v).
 */
 void perform_Wave_Propagation(WPContext *ctx) {
 
     while(!stack_isEmpty(ctx->T)) {
-        // v <-- pop node on top of T
         Node *v = stack_top(ctx->T);
         stack_pop(ctx->T);
         //Pdif ← Pcur(v) − Pold(v)
@@ -223,19 +225,21 @@ void perform_Wave_Propagation(WPContext *ctx) {
 /*
  * Algorithm 5: add_new_edges
  * ----------------------------------------------------------------------------
- * Procesa constraints complejas:
- *   - Complex 1:  l ⊇ *r
- *       Pnew = Pcur(r) − Pcache(c)    // solo los nodos de r no vistos antes
- *       Para cada v en Pnew:
- *          si (v,l) no existe, agregar arista (v,l) y “sembrar” Pold(v) en l.
+ * Evalua las restricciones complejas (punteros desreferenciados).
+ * Si un puntero ahora apunta a nuevos lugares, se generan nuevas aristas en el grafo.
+ * 
+ * Devuelve true si se agrego alguna arista nueva, 
+ * lo que forzara una nueva iteracion del algoritmo WP.
+ * 
+ *   - Complex 1 (LOAD/Lectura):  l ⊇ *r (l = *r)
+ *      Si r apunta a v, entonces l debe tener todo lo que contenga v.
+ *      Es decir, por cada nuevo nodo v en el conjunto points-to de r, agregamos la arista v -> l.
  *
- *   - Complex 2:  *l ⊇ r
- *       Pnew = Pcur(l) − Pcache(c)
- *       Para cada v en Pnew:
- *          si (r,v) no existe, agregar arista (r,v) y “sembrar” Pold(r) en v.
- *
- * Posible cambio que le voy hacer:
- *   Devolver un booleano para poder hacer el ciclo en el algorithm 1.
+ *   - Complex 2 (STORE/Escritura):  *l ⊇ r (*l = r)
+ *      Si l apunta a v, entonces v debe tener todom lo que tenga r.
+ *      Es decir, por cada nuevo nodo v en el conjunto points-to de l, agregamos la arista r -> v.
+ * 
+ * Utiliza la variable Pcache para no evaluar aristas que ya procesamos en iteraciones anteriores.
  */
 
 bool add_new_edges(Graph **G) {
@@ -248,7 +252,7 @@ bool add_new_edges(Graph **G) {
 
         Graph *gl = findNode(*G, lname);
         Graph *gr = findNode(*G, rname);
-        if (!gl || !gr) continue; // o crear nodos
+        if (!gl || !gr) continue;
         Node *l = gl->node;
         Node *r = gr->node;
 
@@ -268,7 +272,6 @@ bool add_new_edges(Graph **G) {
             }
         }
         set_destroy(&pNew);
-        //set_destroy(pCache);
     }
     
     //Complex 2
@@ -295,7 +298,6 @@ bool add_new_edges(Graph **G) {
             }
         }
         set_destroy(&pNew);
-        //set_destroy(pCache);  ///VER QUE HACER CON ESTO (porque causa error)
     }
     return changed;
 }

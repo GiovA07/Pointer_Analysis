@@ -36,7 +36,7 @@ bool stack_isEmpty(Stack *stack) {
     return !stack || (stack->top == NULL);
 }
 
-/* Destructor total: limpia y libera la estructura Stack */
+/* Limpia y libera la estructura Stack */
 /* No elimina los nodos dentro del stack ya que estos son los mismos que en el grafo*/
 void stack_destroy(Stack **stack) {
     if (!stack || !*stack) return;

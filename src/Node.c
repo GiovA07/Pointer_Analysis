@@ -85,8 +85,8 @@ void node_alias_merge(Node *target, Node *source){
 }
 
 /* 
-    Retorna 1 en caso que name pertenezca el grupo de alias
-    Retorna 0 en caso contrario.
+* Retorna 1 en caso que name pertenezca el grupo de alias
+* Retorna 0 en caso contrario.
 */
 int node_has_alias(Node *n, char *name){
     if(!n || !name) return 0;
@@ -146,7 +146,7 @@ void printReferences(Node *node) {
 
 // Lista de los nodos que tiene aristas.
 void printEdges(Node *node) {
-    printf("Nodo %s tiene las siguientes referencias:\n", node->name);
+    printf("Nodo %s tiene las siguientes aristas:\n", node->name);
     Set *edge = node->edges;
     while (edge) {
         printf("- %s\n", edge->node->name);

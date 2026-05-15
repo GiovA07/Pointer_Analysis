@@ -10,6 +10,10 @@ static StateRec* state_find(StateTable *st, int id) {
     return NULL;
 }
 
+/*
+ * Busca el estado en la tabla por su ID. Si no existe, crea uno nuevo,
+ * lo inicializa y lo inserta al principio de la tabla (head).
+ */
 static StateRec* state_ensure(StateTable *st, int id) {
     StateRec *r = state_find(st, id);
     if (r) return r;
@@ -55,7 +59,9 @@ void state_set_out(StateTable *st, int id, Graph *gclone) {
     r->out = gclone;
 }
 
-
+/*
+ * Asigna la cadena de texto (Statement) a un estado especifico.
+ */
 void state_set_data(StateTable *st, int id, char *data){
    if (!st) return;
 
@@ -117,6 +123,11 @@ static void state_print_table(StateTable *st) {
     }
 }
 
+/*
+ * Interfaz interactiva usada en la consola para inspeccionar el historial de estados.
+ * Permite listar todas las operaciones ejecutadas y generar archivos .dot 
+ * con las "fotos" de los grafos (IN y OUT) para poder visualizarlas.
+ */
 void state_menu(StateTable *state_tbl) {
     if (!state_tbl || !state_tbl->head) {
         printf("[Menu] No hay estados guardados.\n");
@@ -156,7 +167,7 @@ void state_menu(StateTable *state_tbl) {
 
         printf("ID %d: %s\n", id, r->data ? r->data : "<sin data>");
 
-        printf("Elije (i) in / (o) out / (b) both / (c) cancelar ");
+        printf("Elige (i) in / (o) out / (b) both / (c) cancelar ");
         if (!fgets(buf, sizeof(buf), stdin)) break;
 
         char k = (char)tolower((char)buf[0]);
