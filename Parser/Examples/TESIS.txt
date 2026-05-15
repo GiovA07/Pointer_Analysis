@@ -1,0 +1,5 @@
+X = Y;
+while (cond) {
+    X = R;
+    X = Z;
+}

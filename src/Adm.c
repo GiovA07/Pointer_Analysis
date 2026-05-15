@@ -13,7 +13,7 @@ static Node* ensure_node(Graph **g, char *name) {
     return n;
 }
 
-/* Elimina TODAS las aristas entrantes x -> a barriendo el grafo */
+/* Elimina TODAS las aristas entrantes (x -> a) el grafo */
 static void removeAllInEdgesTo(Graph *g, Node *a) {
     for (Graph *cur = g; cur; cur = cur->next) {
         Node *x = cur->node;
@@ -35,6 +35,8 @@ static void kill_var_state(Graph *g, Node *a) {
     Pold(a) = NULL;
 }
 
+/* Busca un nombre de reemplao dentro de la lista de alias de un nodo */
+/* Devuelve el primer nombre de la lista que no sea igual al excluido */
 static char* pick_other_alias(Node *n, char *exclude) {
     for (Alias *a = n->aliases; a; a = a->next) {
         if (strcmp(a->name, exclude) != 0) return a->name;
@@ -42,19 +44,19 @@ static char* pick_other_alias(Node *n, char *exclude) {
     return NULL;
 }
 
-
+/* Elimina un nodo de un grupo alias */
 static Node* delete_group_alias(Graph **g, Node *node, char *name) {
     if (!g || !node || !name) return node;
 
-    // Si no está realmente agrupado, usar el mismo nodo.
+    // Verifica si el nodo tiene un grupo de alias.
     if (!node_isalias_grouped(node)) return node;
 
-    // Si 'name' no pertenece al grupo (defensivo), no hagas nada raro.
+    // Verifica si el nombre a quitar este dentro del alias del nodo.
     if (!node_has_alias(node, name)) return node;
 
-    // 1) sacamos name del grupo
+    // 1) Borra name de la lista de alias del nodo
     node_alias_remove(node, name);
-    // 2) si el name principal era justo el que sacamos, elegimos otro
+    // 2) si el name principal era justo el que sacamos, reasignamos otro del mismo grupo
     if (strcmp(node->name, name) == 0) {
         char *new_main = pick_other_alias(node, name);
         if (new_main) {
@@ -105,6 +107,7 @@ void constraintComplex1(Graph **g, char *l_name, char *r_name) {
     printf("[Operator] Complex 1 Constraint: %s ⊇ *%s\n", l_name, r_name);
 }
 
+/* Funcion auxiliar, indica si el conjunto Pcur del nodo es Singleton*/
 static Node* pcur_unique_target(Node *l) {
     Set *pts = Pcur(l);
     if (!pts) return NULL;

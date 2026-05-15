@@ -12,7 +12,6 @@
 // Funciones para los constraints
 void constraitBase(Graph **g, char *nameNode1, char *nameNode2);
 void constraintSimple(Graph **g, char *nameNode1, char *nameNode2);
-
 void constraintComplex1(Graph **g, char *l_name, char *r_name);
 void constraintComplex2(Graph **g, char *l_name, char *r_name);
 

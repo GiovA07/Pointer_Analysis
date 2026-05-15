@@ -1,9 +1,9 @@
 A = &X;
+B = &Y;
 if (cond) {
-  B = A;
+  A = B;
+  B = A; 
 } else {
-  B = &Y;
+  A = &D;
 }
-D = *B;
-*B = F;
-F = &A;
+*A = C;

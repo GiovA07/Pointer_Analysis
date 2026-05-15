@@ -109,11 +109,13 @@
 
 
     static void wp_with_reset(Graph **G) {
-        // invalidamos las caches ya que se ejecutara wave en cada sentencia
-        constraints_reset_all_caches(listComplex1);
-        constraints_reset_all_caches(listComplex2);
-
         wave_Propagation(G);
+        //Eliminamos las constraits complejas una vez ejecutadas
+        constraints_destroy(listComplex1);
+        constraints_destroy(listComplex2);
+        listComplex1 = NULL;
+        listComplex2 = NULL;
+
     }
 
 
