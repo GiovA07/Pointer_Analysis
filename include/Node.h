@@ -33,9 +33,9 @@ void node_setReferences(Node *node, Set *src);
 void addReference(Node *node, Node *ref);
 void removeReference(Node *node, Node *ref);
 
-void addEdgeInNode(Node *node, Node *edge);
-void removeEdgeInNode(Node *node, Node *ref);
-int existEdgeInNode(Node *node, Node *ref);
+void node_addEdge(Node *node, Node *edge);
+void node_removeEdge(Node *node, Node *ref);
+int node_existEdge(Node *node, Node *ref);
 
 int  node_has_alias(Node *n, char *name);
 void node_alias_add(Node *n, char *name);

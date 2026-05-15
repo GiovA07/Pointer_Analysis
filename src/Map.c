@@ -77,8 +77,6 @@ Node* getRValue(RMap* rMap, Node* node) {
     return NULL;
 }
 
-
-
 void setRValue(RMap* rMap, Node* node, Node* representative) {
     for (RMap* r = rMap; r; r = r->next) {
         if (r->node == node) {

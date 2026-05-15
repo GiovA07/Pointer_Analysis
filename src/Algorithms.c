@@ -60,7 +60,7 @@ static void mergeNodes(Node *target, Node *source) {
 /* Las edges salientes de source en target */
 static void out_edges_in_target(Node *target, Node *source) {
     for (Set *e = source->edges; e; e = e->next) {
-        addEdgeInNode(target, e->node);
+        node_addEdge(target, e->node);
     }
 }
 
@@ -87,7 +87,7 @@ static void unify(Graph **G, Node *target, Node *source) {
     // 3) las edges salientes de sources, agregarlas a target
     out_edges_in_target(target,source);
     //4) Eliminar posible autociclo generado
-    removeEdgeInNode(target, target);
+    node_removeEdge(target, target);
     // 5) Fusionar info (Pcur/Pold, etc.)
     mergeNodes(target, source);
     node_alias_merge(target, source);
@@ -261,8 +261,8 @@ bool add_new_edges(Graph **G) {
         for (Set* curSet = pNew; curSet ; curSet = curSet->next) {
             /*(v,l) /∈ E */
             Node *v = curSet->node;
-            if(v != l && !existEdgeInNode(v, l)) {
-                addEdgeInNode(v,l);
+            if(v != l && !node_existEdge(v, l)) {
+                node_addEdge(v,l);
                 changed = true;
                 set_union_inplace(&Pcur(l), Pold(v));
             }
@@ -288,8 +288,8 @@ bool add_new_edges(Graph **G) {
         for (Set *curSet = pNew; curSet; curSet = curSet->next) {
             /*(r, v) /∈ E  */
             Node *v = curSet->node;
-            if(r != v && !existEdgeInNode(r,v)) {
-                addEdgeInNode(r,v);
+            if(r != v && !node_existEdge(r,v)) {
+                node_addEdge(r,v);
                 changed = true;
                 set_union_inplace(&Pcur(v), Pold(r));
             }

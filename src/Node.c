@@ -32,21 +32,21 @@ void removeReference(Node *node, Node *ref){
     set_deleteElem(&node->references, ref);
 }
 
-void addEdgeInNode(Node *node, Node *edge) {
+void node_addEdge(Node *node, Node *edge) {
     Set **edges = &node->edges;
     if (set_existElem(*edges, edge)) return ;
 
     set_addElem(edges, edge);
 }
 
-void removeEdgeInNode(Node *node, Node *edge) {
+void node_removeEdge(Node *node, Node *edge) {
     Set **edges = &node->edges;
     if (!set_existElem(*edges, edge)) return ;
 
     set_deleteElem(edges, edge);
 }
 
-int existEdgeInNode(Node *node, Node *ref) {
+int node_existEdge(Node *node, Node *ref) {
     return set_existElem(node->edges, ref) ? 1 : 0;
 }
 

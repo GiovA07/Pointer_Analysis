@@ -17,7 +17,7 @@ static Node* ensure_node(Graph **g, char *name) {
 static void removeAllInEdgesTo(Graph *g, Node *a) {
     for (Graph *cur = g; cur; cur = cur->next) {
         Node *x = cur->node;
-        removeEdgeInNode(x, a);    /* quita x->a si existe */
+        node_removeEdge(x, a);    /* quita x->a si existe */
     }
 }
 

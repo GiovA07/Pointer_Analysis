@@ -52,7 +52,7 @@ void addEdge(Graph *from, Node* to) {
         printf("Error: Nodo de origen o destino no valido.\n");
         return;
     }
-    addEdgeInNode(from->node, to);
+    node_addEdge(from->node, to);
 }
 
 void removeEdge(Graph *from, Node* to){
@@ -60,7 +60,7 @@ void removeEdge(Graph *from, Node* to){
         printf("Error: Nodo de origen o destino no valido.\n");
         return;
     }
-    removeEdgeInNode(from->node, to);
+    node_removeEdge(from->node, to);
 }
 
 // Imprime el grafo en formato de lista de adyacencia
@@ -159,7 +159,7 @@ Graph* graph_clone(Graph *src) {
         for (Set *e = n_src->edges; e; e=e->next) {
             Graph *ge = findNodeResolved(result, e->node->name);
             if (!ge) continue;
-            addEdgeInNode(n_dst, ge->node);
+            node_addEdge(n_dst, ge->node);
         }
         //Copiar alias
         for (Alias *a = n_src->aliases; a; a = a->next)
@@ -188,8 +188,8 @@ void unify_node_to_target(Graph *G, Node *target, Node *source) {
         if (!x) continue;
         // edges entrantes: x->source  => x->target
         if (set_existElem(x->edges, source)) {
-            addEdgeInNode(x, target);
-            removeEdgeInNode(x, source);
+            node_addEdge(x, target);
+            node_removeEdge(x, source);
         }
         // Pcur(x): si apunta a source, redirigir a target
         if (set_existElem(x->references, source)) {
@@ -213,9 +213,9 @@ static void join_unify(Graph **J, Node *target, Node *source) {
     set_union_inplace(&target->references, source->references);
     set_union_inplace(&target->pold,       source->pold);
     for (Set *e = source->edges; e; e = e->next)
-        addEdgeInNode(target, e->node);
+        node_addEdge(target, e->node);
 
-    removeEdgeInNode(target, target);
+    node_removeEdge(target, target);
     // Merge aliases
     node_alias_merge(target, source);
     //saca a source del join
@@ -282,7 +282,7 @@ static void join_merge_side(Graph **J, Graph *side) {
         }
         for (Set *e = g->node->edges; e; e = e->next) {
             Node *vJ = ensure_node_in(J, e->node);
-            addEdgeInNode(uJ, vJ);
+            node_addEdge(uJ, vJ);
         }
     }
 }
