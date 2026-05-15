@@ -3,7 +3,7 @@
 /* Busca el nodo por nombre; si no existe, lo crea y lo agrega al grafo. */
 // Si existe (por name o alias), devolvemos el representante y registramos 'name' como alias.
 static Node* ensure_node(Graph **g, char *name) {
-    Graph *existing = findNodeResolved(*g, name);
+    Graph *existing = findNode(*g, name);
     if (existing) {
         node_alias_add(existing->node, name);
         return existing->node;
@@ -89,7 +89,7 @@ void constraintSimple(Graph **g, char *dst_a, char *src_b) {
 
     kill_var_state(*g,a);
 
-    Graph *bGraph = findNodeResolved(*g, b->name);
+    Graph *bGraph = findNode(*g, b->name);
     if (!bGraph) return;
     addEdge(bGraph, a);                 /* crea la arista b -> a */
     // set_union_inplace(&Pcur(a), Pold(b)); 

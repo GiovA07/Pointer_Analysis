@@ -1,12 +1,9 @@
 digraph{
 rankdir=TB;
-C [label="C {}"];
-Y [label="Y {}"];
-B [label="B {Y, D}"];
-A [label="A {Y, D}"];
+R [label="R {}"];
+Z [label="Z {}"];
 X [label="X {}"];
-D [label="D {}"];
-C -> Y;
-C -> D;
-A -> B;
+Y [label="Y {}"];
+Z -> X;
+Y -> X;
 }

@@ -84,6 +84,10 @@ void node_alias_merge(Node *target, Node *source){
     source->aliases = NULL;
 }
 
+/* 
+    Retorna 1 en caso que name pertenezca el grupo de alias
+    Retorna 0 en caso contrario.
+*/
 int node_has_alias(Node *n, char *name){
     if(!n || !name) return 0;
     if(strcmp(n->name, name)==0) return 1;
@@ -103,6 +107,7 @@ int aliases_equal(Alias *a, Alias *b) {
     return 1;
 }
 
+/* Retorna 1 si el nodo tiene grupo de alias, Retorna 0 en caso contrario */
 int node_isalias_grouped(Node *n){
     if(!n) return 0;
 

@@ -3,11 +3,16 @@
 #include <string.h>
 #include "../include/Graph.h"
 
-
-// Busca un nodo en el grafo y devuelve su puntero, o NULL si no existe.
+// Busca un nodo en el grafo por nombre principal o alias. Devuelve NULL si no existe.
 Graph* findNode(Graph *g, char *name) {
-    for (; g; g = g->next)
-        if (strcmp(g->node->name, name) == 0) return g;
+    // 1) match directo por name
+    for (Graph *cur = g; cur; cur = cur->next)
+        if (strcmp(cur->node->name, name) == 0) return cur;
+
+    // 2) match por aliases
+    for (Graph *cur = g; cur; cur = cur->next)
+        if (node_has_alias(cur->node, name)) return cur;
+
     return NULL;
 }
 
@@ -61,28 +66,6 @@ void removeEdge(Graph *from, Node* to){
         return;
     }
     node_removeEdge(from->node, to);
-}
-
-// Imprime el grafo en formato de lista de adyacencia
-void printGraph(Graph *g) {
-    while (g != NULL) {
-        printf("Nodo %s: References: \n", g->node->name);
-        Set *ref = g->node->references;
-        while (ref)
-        {
-            printf(" - %s\n", ref->node->name);
-            ref = ref->next;
-        }
-        printf("\n");        
-
-        printf("Nodo %s: \n", g->node->name);
-        Set *edge = g->node->edges;
-        while (edge != NULL) {
-           printf(" -> %s\n", edge->node->name);
-           edge = edge->next;
-        }
-        g = g->next;
-    }
 }
 
 void generateDot(Graph *g, FILE* file) {
@@ -145,19 +128,19 @@ Graph* graph_clone(Graph *src) {
     for (Graph *g=src; g; g=g->next) {
         Node *n_src = g->node;
         
-        Graph *gdst = findNodeResolved(result, n_src->name);
+        Graph *gdst = findNode(result, n_src->name);
         if (!gdst) continue;
         Node *n_dst = gdst->node;
 
         // Copiar referencias
         for (Set *r = n_src->references; r; r = r->next) {
-            Graph *gr = findNodeResolved(result, r->node->name);
+            Graph *gr = findNode(result, r->node->name);
             if (!gr) continue;
             addReference(n_dst, gr->node);
         }
         // Copiar Edges
         for (Set *e = n_src->edges; e; e=e->next) {
-            Graph *ge = findNodeResolved(result, e->node->name);
+            Graph *ge = findNode(result, e->node->name);
             if (!ge) continue;
             node_addEdge(n_dst, ge->node);
         }
@@ -168,18 +151,7 @@ Graph* graph_clone(Graph *src) {
     return result;
 }
 
-Graph* findNodeResolved(Graph *g, char *name) {
-    // 1) match directo por name
-    for (Graph *cur = g; cur; cur = cur->next)
-        if (strcmp(cur->node->name, name) == 0) return cur;
-
-    // 2) match por aliases
-    for (Graph *cur = g; cur; cur = cur->next)
-        if (node_has_alias(cur->node, name)) return cur;
-
-    return NULL;
-}
-
+/* Redirige edges y referencias del grafo que apuntaban al nodo source para que ahora apunten al nodo target. */
 void unify_node_to_target(Graph *G, Node *target, Node *source) {
     if (!G || !source || !target || source == target) return;
     // 1) Reemplazar edges entrantes y referencias que apuntaban a source
@@ -204,6 +176,14 @@ void unify_node_to_target(Graph *G, Node *target, Node *source) {
     }
 }
 
+/* 
+ * Fusiona el nodo source dentro del nodo taret.
+ * 1. Redirige edges y referencias del grafo hacia target.
+ * 2. Une las referencias, edges, conjuntos pold y alias de ambos nodos.
+ * 3. Elimina los autociclos que pueden suceder.
+ * 4. Saca a source del grafo y libera su memoria.
+ */
+
 static void join_unify(Graph **J, Node *target, Node *source) {
     if (!J || !*J || !target || !source || target == source) return;
 
@@ -224,24 +204,30 @@ static void join_unify(Graph **J, Node *target, Node *source) {
     node_destroy(source);
 }
 
+/* 
+ * Resuelve conflictos de nombres durante un join.
+ * Si al agregar un alias a un nodo representante (rep) descubrimos que ese alias 
+ * ya era el nombre  de otro nodo existente en el grafo (conf), fusionamos ambos nodos 
+ * para mantener la consistencia de los grupos de alias.
+ */
 static void absorb_name_collision(Graph **J, Node *rep, char *alias_name) {
-    Graph *conf = findNodeResolved(*J, alias_name);
+    Graph *conf = findNode(*J, alias_name);
     if (conf && conf->node != rep) {
         join_unify(J, rep, conf->node);
     }
 }
 
-// Helper: buscar o crear por nombre dentro de un grafo. (UTILIZADO EN EL JOIN) */
+/* Helper: buscar o crear por nombre dentro de un grafo. (UTILIZADO EN EL JOIN) */
 static Node* ensure_node_in(Graph **J, Node *node) {
     if (!node) return NULL;
 
     // 1) busco por name directo
-    Graph *g = findNodeResolved(*J, node->name);
+    Graph *g = findNode(*J, node->name);
 
     // 2) si no esta, busco por cualquiera de sus aliases
     if (!g) {
         for (Alias *a = node->aliases; a; a = a->next) {
-            g = findNodeResolved(*J, a->name);
+            g = findNode(*J, a->name);
             if (g) break;
         }
     }
@@ -292,8 +278,6 @@ Graph* graph_join(Graph *a, Graph *b) {
     join_merge_side(&j, a);
     join_merge_side(&j, b);
 
-    // TODO: Podriamos ver si hacer la copia de Pold
-
     return j;
 }
 
@@ -303,18 +287,18 @@ int graphs_equal(Graph *a, Graph *b){
 
     // mismo conjunto de nodos por nombre
     for (Graph *ga = a; ga; ga = ga->next) {
-        Graph *gb = findNodeResolved(b, ga->node->name);
+        Graph *gb = findNode(b, ga->node->name);
         if (!gb) return 0;
     }
     for (Graph *gb = b; gb; gb = gb->next) {
-        Graph *ga = findNodeResolved(a, gb->node->name);
+        Graph *ga = findNode(a, gb->node->name);
         if (!ga) return 0;
     }
 
     // mismas refs, edges y alias por nodo
     for (Graph *ga=a; ga; ga=ga->next){
         Node *na = ga->node;
-        Graph *gb = findNodeResolved(b, na->name);
+        Graph *gb = findNode(b, na->name);
         if (!gb) return 0;
         Node *nb = gb->node;
         
@@ -341,4 +325,26 @@ void graph_destroy(Graph **g) {
         cur = next;
     }
     *g = NULL;
+}
+
+// Imprime el grafo en formato de lista de adyacencia
+void printGraph(Graph *g) {
+    while (g != NULL) {
+        printf("Nodo %s: References: \n", g->node->name);
+        Set *ref = g->node->references;
+        while (ref)
+        {
+            printf(" - %s\n", ref->node->name);
+            ref = ref->next;
+        }
+        printf("\n");        
+
+        printf("Nodo %s: \n", g->node->name);
+        Set *edge = g->node->edges;
+        while (edge != NULL) {
+           printf(" -> %s\n", edge->node->name);
+           edge = edge->next;
+        }
+        g = g->next;
+    }
 }

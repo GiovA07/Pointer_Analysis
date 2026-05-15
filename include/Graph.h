@@ -22,15 +22,15 @@ void removeNode(Graph **g, Node *node);
 void addEdge(Graph *from, Node* to);
 void removeEdge(Graph *from, Node* to);
 
-Graph* findNodeResolved(Graph *g, char *name);
-
-void printGraph(Graph *g);
 void generateDot(Graph *g, FILE* file);
 void printDot(Graph *g, const char* filename);
 
 Graph* graph_clone(Graph *src);
 Graph* graph_join(Graph *a, Graph *b);
 int graphs_equal(Graph *a, Graph *b);
+
 void graph_destroy(Graph **g);
 void unify_node_to_target(Graph *G, Node *target, Node *source);
+
+void printGraph(Graph *g);
 #endif // GRAPH_H

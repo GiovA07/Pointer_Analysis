@@ -246,8 +246,8 @@ bool add_new_edges(Graph **G) {
         char *lname             = constraint_getL(curCons);
         char *rname             = constraint_getR(curCons);
 
-        Graph *gl = findNodeResolved(*G, lname);
-        Graph *gr = findNodeResolved(*G, rname);
+        Graph *gl = findNode(*G, lname);
+        Graph *gr = findNode(*G, rname);
         if (!gl || !gr) continue; // o crear nodos
         Node *l = gl->node;
         Node *r = gr->node;
@@ -276,8 +276,8 @@ bool add_new_edges(Graph **G) {
         char *lname = constraint_getL(curCons);
         char *rname = constraint_getR(curCons);
 
-        Graph *gl = findNodeResolved(*G, lname);
-        Graph *gr = findNodeResolved(*G, rname);
+        Graph *gl = findNode(*G, lname);
+        Graph *gr = findNode(*G, rname);
         if (!gl || !gr) continue;
         Node *l = gl->node;
         Node *r = gr->node;
